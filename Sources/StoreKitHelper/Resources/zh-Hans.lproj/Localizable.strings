@@ -8,4 +8,7 @@
 "terms_of_service" = "服务条款";
 "privacy_policy" = "隐私政策";
 
+"restore_purchases" = "恢复购买";
+"restore_purchases_failed" = "恢复购买失败：";
+
 "purchase_failed" = "购买失败";

@@ -65,6 +65,8 @@ private struct ProductsListView: View {
         .frame(alignment: .top)
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
+        Divider().padding(.horizontal, 10)
+        RestorePurchasesButtonView().disabled(buyingProductID != nil)
     }
     func purchase(product: Product) {
         Task {
@@ -142,7 +144,6 @@ struct CostomPayButtonStyle: ButtonStyle {
         ButtonView(isHovered: $isHovered, configuration: configuration, normalColor: normalColor, hoverColor: hoverColor)
     }
     private struct ButtonView: View {
-        //@State private var isHovered = false
         @Binding var isHovered: Bool
         let configuration: Configuration
         let normalColor: Color
@@ -152,13 +153,44 @@ struct CostomPayButtonStyle: ButtonStyle {
                 .foregroundColor(.secondary)
                 .padding(3)
                 .padding(.horizontal, 3)
-//                .onHover { isHovered = $0 }
                 .foregroundStyle(isHovered ? Color.primary : Color.secondary)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(isHovered ? hoverColor.opacity(configuration.isPressed ? 1 : 0.75) : normalColor)
                 )
         }
+    }
+}
+
+// MARK: 恢复购买
+/// 恢复购买
+private struct RestorePurchasesButtonView: View {
+    @EnvironmentObject var store: StoreContext
+    @State var restoringPurchase: Bool = false
+    var body: some View {
+        Button(action: {
+            Task {
+                restoringPurchase = true
+                do {
+                    await try store.restorePurchases()
+                    restoringPurchase = false
+                } catch {
+                    restoringPurchase = false
+                    Utils.alert(title: "restore_purchases_failed".localized(), message: error.localizedDescription)
+                }
+            }
+        }, label: {
+            HStack {
+                if restoringPurchase == true {
+                    ProgressView().controlSize(.mini)
+                }
+                Text("restore_purchases".localized())
+            }
+        })
+        .buttonStyle(.link)
+        .padding(.top, 10)
+        .padding(.bottom, 10)
+        .disabled(restoringPurchase)
     }
 }
 
@@ -192,7 +224,7 @@ private struct TermsOfServiceView: View {
     }
 }
 
-// MARK: - 头部
+// MARK: - Header
 private struct StoreKitHelperHeaderView: View {
     public init(dismiss: @escaping () -> Void) {
         self.dismiss = dismiss

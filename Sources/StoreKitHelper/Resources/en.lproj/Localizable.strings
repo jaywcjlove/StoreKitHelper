@@ -8,4 +8,7 @@
 "terms_of_service" = "Terms of Service";
 "privacy_policy" = "Privacy Policy";
 
+"restore_purchases" = "Restore Purchases";
+"restore_purchases_failed" = "Restore Purchases Failed:";
+
 "purchase_failed" = "Purchase Failed";

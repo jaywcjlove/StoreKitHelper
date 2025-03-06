@@ -82,7 +82,7 @@ public extension StoreContext {
                 do {
                     try result.verify()
                 } catch {
-                    print("Transaction listener error: \(error.localizedDescription)")
+                    print("🚨 Transaction listener error: \(error.localizedDescription)")
                 }
             }
         }
