@@ -1,0 +1,11 @@
+//
+//  Localizable.strings
+//  StoreKitHelper
+//
+//  Created by 王楚江 on 2025/3/5.
+//
+
+"terms_of_service" = "Terms of Service";
+"privacy_policy" = "Privacy Policy";
+
+"purchase_failed" = "Purchase Failed";
