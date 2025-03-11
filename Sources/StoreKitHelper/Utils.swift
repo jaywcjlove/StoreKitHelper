@@ -7,9 +7,9 @@
 
 import AppKit
 
-public class Utils {
+class Utils {
     nonisolated(unsafe) static let shared = Utils()
-    @MainActor public static func alert(title: String, message: String) {
+    @MainActor static func alert(title: String, message: String) {
         // 路径不存在时弹出警告提示框
         let alert = NSAlert()
         alert.messageText = title

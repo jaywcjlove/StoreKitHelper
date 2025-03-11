@@ -7,10 +7,6 @@
 
 import StoreKit
 
-/// 定义的产品 ID 这是`固定`的
-public typealias ProductID = String
-/// 请求的产品 ID
-public typealias ProductFetchID = String
 public extension StoreContext {
     func isProductPurchased(id: ProductID) -> Bool {
         purchasedProductIds.contains(id)
@@ -23,7 +19,7 @@ public extension StoreContext {
     func product(withId id: ProductFetchID) -> Product? {
         products.first { $0.id == id }
     }
-    open func getProducts() async throws -> [Product] {
+    func getProducts() async throws -> [Product] {
         return try await Product.products(for: productIds)
     }
     // MARK: - 购买
@@ -37,7 +33,7 @@ public extension StoreContext {
         return result
     }
     @discardableResult
-    open func purchaseResult(_ product: Product) async throws -> (Product.PurchaseResult, Transaction?) {
+    func purchaseResult(_ product: Product) async throws -> (Product.PurchaseResult, Transaction?) {
         let result = try await product.purchase()
         switch result {
         case .success(let result): try await finalizePurchaseResult(result)
@@ -49,7 +45,7 @@ public extension StoreContext {
     }
     /// Finalize a purchase result from a ``purchaseResult(_:)``.
     /// 购买结果确认
-    open func finalizePurchaseResult(_ result: VerificationResult<Transaction>) async throws {
+    func finalizePurchaseResult(_ result: VerificationResult<Transaction>) async throws {
         let transaction = try result.verify()
         await transaction.finish()
     }
@@ -60,7 +56,7 @@ public extension StoreContext {
         await updatePurchaseTransactions(transactions)
     }
     
-    open func getValidProductTransations() async throws -> [Transaction] {
+    func getValidProductTransations() async throws -> [Transaction] {
         var transactions: [Transaction] = []
         for id in productIds {
             if let transaction = try await getValidTransaction(for: id) {
@@ -70,17 +66,19 @@ public extension StoreContext {
         return transactions
     }
     /// 获取某个产品的所有有效交易
-    open func getValidTransaction(for productId: ProductID) async throws -> Transaction? {
+    func getValidTransaction(for productId: ProductID) async throws -> Transaction? {
         guard let latest = await Transaction.latest(for: productId) else { return nil }
         let result = try latest.verify()
         return result.isValid ? result : nil
     }
+    /// 监听事务更新
     /// 这个函数由初始化器调用，用于获取交易更新并尝试验证它们。
-    open func updateTransactionsOnLaunch() -> Task<Void, Never> {
-        return Task.detached {
+    func updateTransactionsOnLaunch() -> Task<Void, Never> {
+        return Task.detached(priority: .background) {
             for await result in Transaction.updates {
                 do {
-                    try result.verify()
+                    let transaction = try result.verify()
+                    await self.updatePurchaseTransactions(with: transaction)
                 } catch {
                     print("🚨 Transaction listener error: \(error.localizedDescription)")
                 }
@@ -88,7 +86,7 @@ public extension StoreContext {
         }
     }
     /// 同步存储数据
-    open func syncStoreData() async throws {
+    func syncStoreData() async throws {
         let products = try await getProducts()
         await updateProducts(products)
         try await restorePurchases()

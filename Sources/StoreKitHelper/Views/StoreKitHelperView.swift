@@ -49,6 +49,7 @@ private struct ProductsListView: View {
             ForEach(store.products.sorted(by: { $0.price > $1.price })) { product in
                 let unit = product.subscription?.subscriptionPeriod.unit
                 let isBuying = buyingProductID == product.id
+                let isProductPurchased = store.isProductPurchased(product)
                 ProductsListLabelView(
                     isBuying: .constant(isBuying),
                     unit: unit,

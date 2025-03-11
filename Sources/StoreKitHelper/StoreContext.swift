@@ -2,22 +2,59 @@
 // https://docs.swift.org/swift-book
 
 import StoreKit
+//
+//extension StoreContext: SKPaymentTransactionObserver {
+//    public func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+//        print("Subscriptions Payment Queue! updated!")
+//        for transaction in transactions {
+//            switch transaction.transactionState {
+//            case .purchased:
+//                print("1 交易失败:1")
+//                completeTransaction(transaction)
+//            case .failed:
+//                print("1 交易失败:2")
+//                failedTransaction(transaction)
+//            case .restored:
+//                print("1 交易失败:3")
+//                restoreTransaction(transaction)
+//            case .deferred, .purchasing:
+//                print("1 交易失败:4")
+//                break
+//            @unknown default:
+//                print("1 交易失败:5")
+//                break
+//            }
+//        }
+//    }
+//    /// 处理成功的交易
+//    private func completeTransaction(_ transaction: SKPaymentTransaction) {
+//        DispatchQueue.main.async {
+//            self.purchasedProductIds.append(transaction.payment.productIdentifier)
+//        }
+//        SKPaymentQueue.default().finishTransaction(transaction)
+//    }
+//    /// 处理恢复购买
+//    private func restoreTransaction(_ transaction: SKPaymentTransaction) {
+//        if let productId = transaction.original?.payment.productIdentifier {
+//            DispatchQueue.main.async {
+//                self.purchasedProductIds.append(productId)
+//            }
+//        }
+//        SKPaymentQueue.default().finishTransaction(transaction)
+//    }
+//
+//    /// 处理失败的交易
+//    private func failedTransaction(_ transaction: SKPaymentTransaction) {
+//        if let error = transaction.error as NSError?, error.code != SKError.paymentCancelled.rawValue {
+//            print("❌ 交易失败: \(error.localizedDescription)")
+//        }
+//        SKPaymentQueue.default().finishTransaction(transaction)
+//    }
+//}
 
 public class StoreContext: ObservableObject, @unchecked Sendable {
     /// 更新
     private var transactionUpdateTask: Task<Void, Never>? = nil
-    public init(productIds: [ProductID] = []) {
-        products = []
-        self.productIds = persistedProductIds.isEmpty || productIds.count != persistedProductIds.count ? productIds : persistedProductIds
-        purchasedProductIds = persistedPurchasedProductIds
-        transactionUpdateTask = updateTransactionsOnLaunch()
-        Task {
-            try await syncStoreData()
-        }
-    }
-    deinit {
-        transactionUpdateTask?.cancel()
-    }
     /**
     已同步的产品列表。
 
@@ -32,7 +69,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
         willSet { persistedProductIds = newValue }
     }
     /// 产品列表 -  更新 ``StoreContext/productIds`` ID，通过 ``StoreContext/updateProducts(_:)`` 更新产品列表
-    @Published public var products: [Product] {
+    @Published public var products: [Product] = [] {
         didSet { productIds = products.map { $0.id} }
     }
     /**
@@ -56,6 +93,30 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     /// 弹出 PopUp 显示产品支付界面
     /// 是否显示购买弹窗
     @Published public var isShowingPurchasePopup: Bool = false
+    /// ``StoreContext/init(productIds:)``
+    public convenience init<Product: InAppProduct>(products: [Product]) {
+        self.init(productIds: products.map { $0.id })
+    }
+    public init(productIds: [ProductID] = []) {
+//        self._products = Published(initialValue: []) // ✅ 通过 `_products` 进行初始化
+        // 调用 NSObject 的初始化方法
+//        super.init()
+        // 赋值产品 ID（持久化逻辑）
+        self.productIds = persistedProductIds.isEmpty || productIds.count != persistedProductIds.count
+                    ? productIds : persistedProductIds
+        purchasedProductIds = persistedPurchasedProductIds
+        transactionUpdateTask = updateTransactionsOnLaunch()
+        // 添加 StoreKit 交易监听
+//        SKPaymentQueue.default().add(self)
+        Task {
+            try await syncStoreData()
+        }
+    }
+    deinit {
+        // 移除 StoreKit 交易监听
+//        SKPaymentQueue.default().remove(self)
+        transactionUpdateTask?.cancel()
+    }
 }
 
 @MainActor public extension StoreContext {
