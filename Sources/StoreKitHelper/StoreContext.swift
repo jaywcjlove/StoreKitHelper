@@ -2,55 +2,6 @@
 // https://docs.swift.org/swift-book
 
 import StoreKit
-//
-//extension StoreContext: SKPaymentTransactionObserver {
-//    public func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
-//        print("Subscriptions Payment Queue! updated!")
-//        for transaction in transactions {
-//            switch transaction.transactionState {
-//            case .purchased:
-//                print("1 交易失败:1")
-//                completeTransaction(transaction)
-//            case .failed:
-//                print("1 交易失败:2")
-//                failedTransaction(transaction)
-//            case .restored:
-//                print("1 交易失败:3")
-//                restoreTransaction(transaction)
-//            case .deferred, .purchasing:
-//                print("1 交易失败:4")
-//                break
-//            @unknown default:
-//                print("1 交易失败:5")
-//                break
-//            }
-//        }
-//    }
-//    /// 处理成功的交易
-//    private func completeTransaction(_ transaction: SKPaymentTransaction) {
-//        DispatchQueue.main.async {
-//            self.purchasedProductIds.append(transaction.payment.productIdentifier)
-//        }
-//        SKPaymentQueue.default().finishTransaction(transaction)
-//    }
-//    /// 处理恢复购买
-//    private func restoreTransaction(_ transaction: SKPaymentTransaction) {
-//        if let productId = transaction.original?.payment.productIdentifier {
-//            DispatchQueue.main.async {
-//                self.purchasedProductIds.append(productId)
-//            }
-//        }
-//        SKPaymentQueue.default().finishTransaction(transaction)
-//    }
-//
-//    /// 处理失败的交易
-//    private func failedTransaction(_ transaction: SKPaymentTransaction) {
-//        if let error = transaction.error as NSError?, error.code != SKError.paymentCancelled.rawValue {
-//            print("❌ 交易失败: \(error.localizedDescription)")
-//        }
-//        SKPaymentQueue.default().finishTransaction(transaction)
-//    }
-//}
 
 public class StoreContext: ObservableObject, @unchecked Sendable {
     /// 更新
@@ -81,7 +32,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     您可以将这些 ID 映射到本地的产品表示。
      */
     @Persisted(key: key("purchasedProductIds"), defaultValue: []) private var persistedPurchasedProductIds: [String]
-    /// 已购买的产品ID
+    /// 已购买的产品ID，限制 id 只能在模块中修改
     @Published public internal(set) var purchasedProductIds: [String] = [] {
         willSet { persistedPurchasedProductIds = newValue }
     }
@@ -120,13 +71,34 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
 }
 
 @MainActor public extension StoreContext {
+    // MARK: - 恢复购买
+    /// 恢复购买
+    func restorePurchases() async throws {
+        // 同步应用内购买信息
+        try await AppStore.sync()
+        try await updatePurchases()
+    }
+    /// 同步存储数据
+    func syncStoreData() async throws {
+        let products = try await getProducts()
+        await updateProducts(products)
+        /// 更新购买信息
+        try await updatePurchases()
+    }
+    /// 更新购买信息
+    func updatePurchases() async throws {
+        let transactions = try await getValidProductTransations()
+        await updatePurchaseTransactions(transactions)
+    }
     /// 更新上下文产品
     func updateProducts(_ products: [Product]) {
         self.products = products
     }
     /// 更新交易记录
     func updatePurchaseTransactions(with transaction: Transaction) {
-        var transactions = purchaseTransactions.filter { $0.productID != transaction.productID }
+        var transactions = purchaseTransactions.filter {
+            $0.productID != transaction.productID
+        }
         transactions.append(transaction)
         purchaseTransactions = transactions
     }
@@ -136,7 +108,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     }
 }
 
-private extension StoreContext {
+extension StoreContext {
     static func key(_ name: String) -> String { "com.wangchujiang.storekithelp.\(name)" }
 }
 

@@ -10,29 +10,23 @@ import StoreKit
 
 public struct StoreKitHelperView: View {
     @Environment(\.pricingContent) private var pricingContent
+    @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
-    ///
-    /// - Parameters:
-    ///   - bundleName: 应用名称
-    ///   - title: 标题
-    public init(
-        dismiss: @escaping () -> Void
-    ) {
-        self.dismiss = dismiss
-    }
-    var dismiss: () -> Void
+    @State var buyingProductID: String? = nil
+    public init() {}
     private let bundleName = {
         Bundle.main.object(forInfoDictionaryKey: kCFBundleNameKey as String) as! String
     }
     public var body: some View {
         VStack(spacing: 0) {
-            StoreKitHelperHeaderView(dismiss: dismiss)
+            StoreKitHelperHeaderView()
             Text(bundleName()).padding(.bottom, 14).foregroundStyle(.secondary).fontWeight(.bold)
             VStack(alignment: .leading, spacing: 6) {
                 pricingContent?()
             }
             .padding(.top, 12)
-            ProductsListView()
+            ProductsListView(buyingProductID: $buyingProductID)
+            RestorePurchasesButtonView().disabled(buyingProductID != nil)
             TermsOfServiceView()
         }
     }
@@ -40,9 +34,11 @@ public struct StoreKitHelperView: View {
 
 // MARK: - 产品列表
 private struct ProductsListView: View {
+    @Environment(\.locale) var locale
     @EnvironmentObject var store: StoreContext
+    @Binding var buyingProductID: String?
     @State var hovering: Bool = false
-    @State var buyingProductID: String? = nil
+    @State var products: [Product] = []
     var body: some View {
         Divider()
         VStack {
@@ -52,6 +48,7 @@ private struct ProductsListView: View {
                 let isProductPurchased = store.isProductPurchased(product)
                 ProductsListLabelView(
                     isBuying: .constant(isBuying),
+                    productId: product.id,
                     unit: unit,
                     displayPrice: product.displayPrice,
                     displayName: product.displayName,
@@ -67,7 +64,6 @@ private struct ProductsListView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
         Divider().padding(.horizontal, 10)
-        RestorePurchasesButtonView().disabled(buyingProductID != nil)
     }
     func purchase(product: Product) {
         Task {
@@ -78,9 +74,10 @@ private struct ProductsListView: View {
                     await transaction.finish()
                 }
                 buyingProductID = nil
+                try await store.updatePurchases()
             } catch {
                 buyingProductID = nil
-                Utils.alert(title: "purchase_failed".localized(), message: error.localizedDescription)
+                Utils.alert(title: "purchase_failed".localized(locale: locale), message: error.localizedDescription)
             }
         }
     }
@@ -91,6 +88,7 @@ private struct ProductsListLabelView: View {
     @EnvironmentObject var store: StoreContext
     @State var hovering: Bool = false
     @Binding var isBuying: Bool
+    var productId: ProductID
     var unit: Product.SubscriptionPeriod.Unit?
     var displayPrice: String
     var displayName: String
@@ -105,15 +103,16 @@ private struct ProductsListLabelView: View {
                 }
             }
             Spacer()
-            let bind = Binding(get: {
-                isBuying || hovering
-            }, set: { _ in })
+            let bind = Binding(get: { isBuying || hovering }, set: { _ in })
+            let hasPurchased = store.purchasedProductIds.contains(productId)
             Button(action: {
                 purchase()
             }, label: {
                 HStack(spacing: 2) {
                     if isBuying == true {
                         ProgressView().controlSize(.mini)
+                    } else if hasPurchased == true {
+                        Image(systemName: "checkmark.circle.fill").font(.system(size: 10))
                     } else {
                         Image(systemName: "cart").font(.system(size: 10))
                     }
@@ -126,7 +125,7 @@ private struct ProductsListLabelView: View {
                 .contentShape(Rectangle())
             })
             .tint(unit == .none ? .blue : .green)
-            .buttonStyle(CostomPayButtonStyle(isHovered: bind))
+            .buttonStyle(CostomPayButtonStyle(isHovered: bind, hasPurchased: hasPurchased))
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 8)
@@ -139,6 +138,7 @@ private struct ProductsListLabelView: View {
 
 struct CostomPayButtonStyle: ButtonStyle {
     @Binding var isHovered: Bool
+    var hasPurchased: Bool = false
     var normalColor: Color = .secondary.opacity(0.25)
     var hoverColor: Color = Color.accentColor
     func makeBody(configuration: Configuration) -> some View {
@@ -166,6 +166,8 @@ struct CostomPayButtonStyle: ButtonStyle {
 // MARK: 恢复购买
 /// 恢复购买
 private struct RestorePurchasesButtonView: View {
+    @Environment(\.locale) var locale
+    @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
     @State var restoringPurchase: Bool = false
     var body: some View {
@@ -175,17 +177,18 @@ private struct RestorePurchasesButtonView: View {
                 do {
                     await try store.restorePurchases()
                     restoringPurchase = false
+                    popupDismissHandle?()
                 } catch {
                     restoringPurchase = false
-                    Utils.alert(title: "restore_purchases_failed".localized(), message: error.localizedDescription)
+                    Utils.alert(title: "restore_purchases_failed".localized(locale: locale), message: error.localizedDescription)
                 }
             }
         }, label: {
             HStack {
-                if restoringPurchase == true {
+                if restoringPurchase {
                     ProgressView().controlSize(.mini)
                 }
-                Text("restore_purchases".localized())
+                Text("restore_purchases".localized(locale: locale))
             }
         })
         .buttonStyle(.link)
@@ -202,19 +205,20 @@ private struct TermsOfServiceView: View {
     
     @Environment(\.termsOfServiceLabel) private var termsOfServiceLabel
     @Environment(\.privacyPolicyLabel) private var privacyPolicyLabel
+    @Environment(\.locale) var locale
     var body: some View {
         if termsOfServiceHandle != nil || privacyPolicyHandle != nil {
             Divider()
             HStack {
                 if let action = termsOfServiceHandle {
                     Button(action: action, label: {
-                        let text = termsOfServiceLabel.isEmpty == true ? "terms_of_service".localized() : termsOfServiceLabel
+                        let text = termsOfServiceLabel.isEmpty == true ? "terms_of_service".localized(locale: locale) : termsOfServiceLabel
                         Text(text).frame(maxWidth: .infinity)
                     })
                 }
                 if let action = privacyPolicyHandle {
                     Button(action: action, label: {
-                        let text = privacyPolicyLabel.isEmpty == true ? "privacy_policy".localized() : privacyPolicyLabel
+                        let text = privacyPolicyLabel.isEmpty == true ? "privacy_policy".localized(locale: locale) : privacyPolicyLabel
                         Text(text).frame(maxWidth: .infinity)
                     })
                 }
@@ -227,10 +231,7 @@ private struct TermsOfServiceView: View {
 
 // MARK: - Header
 private struct StoreKitHelperHeaderView: View {
-    public init(dismiss: @escaping () -> Void) {
-        self.dismiss = dismiss
-    }
-    var dismiss: () -> Void
+    @Environment(\.popupDismissHandle) private var popupDismissHandle
     var body: some View {
         ZStack(alignment: .topTrailing) {
             HStack {
@@ -241,7 +242,7 @@ private struct StoreKitHelperHeaderView: View {
             .padding(.top, 23)
             .frame(maxWidth: .infinity, alignment: .center)
             Button(action: {
-                dismiss()
+                popupDismissHandle?()
             }, label: {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundColor(.secondary)

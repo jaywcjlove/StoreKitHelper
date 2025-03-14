@@ -8,6 +8,9 @@
 
 import SwiftUI
 
+struct PopupDismissHandle: @preconcurrency EnvironmentKey {
+    @MainActor static let defaultValue: (() -> Void)? = nil
+}
 struct TermsOfServiceHandle: @preconcurrency EnvironmentKey {
     @MainActor static let defaultValue: (() -> Void)? = nil
 }
@@ -43,9 +46,15 @@ extension EnvironmentValues {
         get { self[PrivacyPolicyHandle.self] }
         set { self[PrivacyPolicyHandle.self] = newValue }
     }
+    /// 付费说明内容 - 定价说明
     var pricingContent: PricingContentType? {
         get { self[PricingContent.self] }
         set { self[PricingContent.self] = newValue }
+    }
+    /// 弹出框，关闭函数
+    var popupDismissHandle: (() -> Void)? {
+        get { self[PopupDismissHandle.self] }
+        set { self[PopupDismissHandle.self] = newValue }
     }
 }
 
@@ -68,5 +77,9 @@ public extension View {
     /// 定价说明
     func pricingContent(action: PricingContentType? = nil) -> some View {
         return self.environment(\.pricingContent, action)
+    }
+    /// 弹出框，关闭函数
+    func onPopupDismiss(action: @escaping () -> Void) -> some View {
+        return self.environment(\.popupDismissHandle, action)
     }
 }

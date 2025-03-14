@@ -49,12 +49,6 @@ public extension StoreContext {
         let transaction = try result.verify()
         await transaction.finish()
     }
-    // MARK: - 恢复购买
-    /// 恢复购买
-    func restorePurchases() async throws {
-        let transactions = try await getValidProductTransations()
-        await updatePurchaseTransactions(transactions)
-    }
     
     func getValidProductTransations() async throws -> [Transaction] {
         var transactions: [Transaction] = []
@@ -85,13 +79,6 @@ public extension StoreContext {
             }
         }
     }
-    /// 同步存储数据
-    func syncStoreData() async throws {
-        let products = try await getProducts()
-        await updateProducts(products)
-        try await restorePurchases()
-    }
-
 }
 
 private extension VerificationResult where SignedType == Transaction {
