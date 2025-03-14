@@ -49,23 +49,17 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
         self.init(productIds: products.map { $0.id })
     }
     public init(productIds: [ProductID] = []) {
-//        self._products = Published(initialValue: []) // ✅ 通过 `_products` 进行初始化
-        // 调用 NSObject 的初始化方法
-//        super.init()
         // 赋值产品 ID（持久化逻辑）
         self.productIds = persistedProductIds.isEmpty || productIds.count != persistedProductIds.count
                     ? productIds : persistedProductIds
         purchasedProductIds = persistedPurchasedProductIds
         transactionUpdateTask = updateTransactionsOnLaunch()
-        // 添加 StoreKit 交易监听
-//        SKPaymentQueue.default().add(self)
         Task {
+            await self.checkReceipt()
             try await syncStoreData()
         }
     }
     deinit {
-        // 移除 StoreKit 交易监听
-//        SKPaymentQueue.default().remove(self)
         transactionUpdateTask?.cancel()
     }
 }

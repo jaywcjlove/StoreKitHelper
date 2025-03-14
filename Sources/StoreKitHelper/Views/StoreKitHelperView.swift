@@ -38,11 +38,12 @@ private struct ProductsListView: View {
     @EnvironmentObject var store: StoreContext
     @Binding var buyingProductID: String?
     @State var hovering: Bool = false
+    @State var loading: Bool = false
     @State var products: [Product] = []
     var body: some View {
         Divider()
         VStack {
-            ForEach(store.products.sorted(by: { $0.price > $1.price })) { product in
+            ForEach(products) { product in
                 let unit = product.subscription?.subscriptionPeriod.unit
                 let isBuying = buyingProductID == product.id
                 let isProductPurchased = store.isProductPurchased(product)
@@ -61,8 +62,28 @@ private struct ProductsListView: View {
             }
         }
         .frame(alignment: .top)
+        .overlay(content: {
+            if loading == true {
+                VStack {
+                    ProgressView().controlSize(.small)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.background.opacity(0.73))
+            }
+        })
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
+        .onChange(of: store.products, initial: true, { old, val in
+            products = store.products.sorted(by: { $0.price > $1.price })
+        })
+        .onAppear() {
+            loading = true
+            Task {
+                let products = try await store.getProducts()
+                self.products = store.products.sorted(by: { $0.price > $1.price })
+                loading = false
+            }
+        }
         Divider().padding(.horizontal, 10)
     }
     func purchase(product: Product) {
@@ -95,6 +116,7 @@ private struct ProductsListLabelView: View {
     var description: String
     var purchase: () -> Void
     var body: some View {
+        let hasPurchased = store.purchasedProductIds.contains(productId)
         HStack(alignment: .center) {
             VStack(alignment: .leading) {
                 Text(displayName)
@@ -104,7 +126,6 @@ private struct ProductsListLabelView: View {
             }
             Spacer()
             let bind = Binding(get: { isBuying || hovering }, set: { _ in })
-            let hasPurchased = store.purchasedProductIds.contains(productId)
             Button(action: {
                 purchase()
             }, label: {
@@ -112,7 +133,9 @@ private struct ProductsListLabelView: View {
                     if isBuying == true {
                         ProgressView().controlSize(.mini)
                     } else if hasPurchased == true {
-                        Image(systemName: "checkmark.circle.fill").font(.system(size: 10))
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(Color.green)
                     } else {
                         Image(systemName: "cart").font(.system(size: 10))
                     }
@@ -126,10 +149,25 @@ private struct ProductsListLabelView: View {
             })
             .tint(unit == .none ? .blue : .green)
             .buttonStyle(CostomPayButtonStyle(isHovered: bind, hasPurchased: hasPurchased))
+            .disabled(hasPurchased)
+            .onHover { isHovered in
+                if isHovered, hasPurchased {
+                    NSCursor.operationNotAllowed.push()
+                } else if isHovered {
+                    NSCursor.pointingHand.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
+            .onAppear() {
+                NSCursor.pop()
+            }
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 8)
-        .onHover { hovering = $0 }
+        .onHover { isHovered in
+            hovering = isHovered
+        }
         .background(
             RoundedRectangle(cornerRadius: 5).fill(Color.secondary.opacity(hovering == true ? 0.23 : 0))
         )
@@ -142,24 +180,15 @@ struct CostomPayButtonStyle: ButtonStyle {
     var normalColor: Color = .secondary.opacity(0.25)
     var hoverColor: Color = Color.accentColor
     func makeBody(configuration: Configuration) -> some View {
-        ButtonView(isHovered: $isHovered, configuration: configuration, normalColor: normalColor, hoverColor: hoverColor)
-    }
-    private struct ButtonView: View {
-        @Binding var isHovered: Bool
-        let configuration: Configuration
-        let normalColor: Color
-        let hoverColor: Color
-        var body: some View {
-            configuration.label
-                .foregroundColor(.secondary)
-                .padding(3)
-                .padding(.horizontal, 3)
-                .foregroundStyle(isHovered ? Color.primary : Color.secondary)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isHovered ? hoverColor.opacity(configuration.isPressed ? 1 : 0.75) : normalColor)
-                )
-        }
+        configuration.label
+            .foregroundColor(.secondary)
+            .padding(3)
+            .padding(.horizontal, 3)
+            .foregroundStyle(isHovered ? Color.primary : Color.secondary)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isHovered || hasPurchased ? hoverColor.opacity(configuration.isPressed ? 1 : 0.75) : normalColor)
+            )
     }
 }
 
@@ -177,7 +206,11 @@ private struct RestorePurchasesButtonView: View {
                 do {
                     await try store.restorePurchases()
                     restoringPurchase = false
-                    popupDismissHandle?()
+                    if store.purchasedProductIds.count > 0 {
+                        popupDismissHandle?()
+                    } else {
+                        Utils.alert(title: "no_purchase_available".localized(locale: locale), message: "")
+                    }
                 } catch {
                     restoringPurchase = false
                     Utils.alert(title: "restore_purchases_failed".localized(locale: locale), message: error.localizedDescription)
