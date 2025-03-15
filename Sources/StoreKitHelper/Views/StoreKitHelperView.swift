@@ -35,6 +35,7 @@ public struct StoreKitHelperView: View {
 // MARK: - 产品列表
 private struct ProductsListView: View {
     @Environment(\.locale) var locale
+    @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
     @Binding var buyingProductID: String?
     @State var hovering: Bool = false
@@ -99,6 +100,9 @@ private struct ProductsListView: View {
                     await store.updatePurchaseTransactions(with: transaction)
                 } else {
                     try await store.updatePurchases()
+                }
+                if store.isProductPurchased(product) == true {
+                    popupDismissHandle?()
                 }
             } catch {
                 buyingProductID = nil
