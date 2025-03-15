@@ -32,6 +32,17 @@ public struct StoreKitHelperView: View {
     }
 }
 
+enum LadingStaus {
+    /// 加载中
+    case loading
+    /// 准备加载
+    case preparing
+    /// 完成加载
+    case complete
+    /// 不可用
+    case unavailable
+}
+
 // MARK: - 产品列表
 private struct ProductsListView: View {
     @Environment(\.locale) var locale
@@ -39,32 +50,42 @@ private struct ProductsListView: View {
     @EnvironmentObject var store: StoreContext
     @Binding var buyingProductID: String?
     @State var hovering: Bool = false
-    @State var loading: Bool = false
+    @State var loading: LadingStaus = .preparing
     @State var products: [Product] = []
     var body: some View {
         Divider()
         VStack {
-            ForEach(products) { product in
-                let unit = product.subscription?.subscriptionPeriod.unit
-                let isBuying = buyingProductID == product.id
-                let isProductPurchased = store.isProductPurchased(product)
-                ProductsListLabelView(
-                    isBuying: .constant(isBuying),
-                    productId: product.id,
-                    unit: unit,
-                    displayPrice: product.displayPrice,
-                    displayName: product.displayName,
-                    description: product.description
-                ) {
-                    purchase(product: product)
+            if loading == .unavailable {
+                VStack(spacing: 6) {
+                    Text("store_unavailable".localized(locale: locale)).font(.system(size: 16))
+                    Text("no_in_app_purchases".localized(locale: locale)).foregroundStyle(Color.secondary).fontWeight(.thin)
                 }
-                .id(product.id)
-                .disabled(buyingProductID != nil)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.background.opacity(0.73))
+                .padding(8)
+            } else {
+                ForEach(products) { product in
+                    let unit = product.subscription?.subscriptionPeriod.unit
+                    let isBuying = buyingProductID == product.id
+                    let isProductPurchased = store.isProductPurchased(product)
+                    ProductsListLabelView(
+                        isBuying: .constant(isBuying),
+                        productId: product.id,
+                        unit: unit,
+                        displayPrice: product.displayPrice,
+                        displayName: product.displayName,
+                        description: product.description
+                    ) {
+                        purchase(product: product)
+                    }
+                    .id(product.id)
+                    .disabled(buyingProductID != nil)
+                }
             }
         }
         .frame(alignment: .top)
         .overlay(content: {
-            if loading == true {
+            if loading == .loading {
                 VStack {
                     ProgressView().controlSize(.small)
                 }
@@ -78,11 +99,12 @@ private struct ProductsListView: View {
             products = store.products.sorted(by: { $0.price > $1.price })
         })
         .onAppear() {
-            loading = true
+            loading = .loading
             Task {
                 let products = try await store.getProducts()
                 self.products = store.products.sorted(by: { $0.price > $1.price })
-                loading = false
+                print("self.products", self.products.count)
+                loading = self.products.count == 0 ? .unavailable : .complete
             }
         }
         Divider().padding(.horizontal, 10)

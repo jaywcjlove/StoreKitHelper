@@ -12,4 +12,7 @@
 "restore_purchases_failed" = "Restore Purchases Failed:";
 "no_purchase_available" = "No purchases to restore";
 
+"store_unavailable" = "Store Unavailable";
+"no_in_app_purchases" = "No in-app purchases are available in the current storefront.";
+
 "purchase_failed" = "Purchase Failed";
