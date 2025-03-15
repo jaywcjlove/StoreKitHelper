@@ -95,7 +95,11 @@ private struct ProductsListView: View {
                     await transaction.finish()
                 }
                 buyingProductID = nil
-                try await store.updatePurchases()
+                if let transaction {
+                    await store.updatePurchaseTransactions(with: transaction)
+                } else {
+                    try await store.updatePurchases()
+                }
             } catch {
                 buyingProductID = nil
                 Utils.alert(title: "purchase_failed".localized(locale: locale), message: error.localizedDescription)
