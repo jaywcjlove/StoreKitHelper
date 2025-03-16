@@ -8,11 +8,23 @@
 import SwiftUI
 import StoreKit
 
+enum LadingStaus {
+    /// 加载中
+    case loading
+    /// 准备加载
+    case preparing
+    /// 完成加载
+    case complete
+    /// 不可用
+    case unavailable
+}
+
 public struct StoreKitHelperView: View {
     @Environment(\.pricingContent) private var pricingContent
     @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
     @State var buyingProductID: String? = nil
+    @State var loadingProducts: LadingStaus = .preparing
     public init() {}
     private let bundleName = {
         Bundle.main.object(forInfoDictionaryKey: kCFBundleNameKey as String) as! String
@@ -25,22 +37,13 @@ public struct StoreKitHelperView: View {
                 pricingContent?()
             }
             .padding(.top, 12)
-            ProductsListView(buyingProductID: $buyingProductID)
-            RestorePurchasesButtonView().disabled(buyingProductID != nil)
+            ProductsListView(buyingProductID: $buyingProductID, loading: $loadingProducts)
+            if loadingProducts == .complete {
+                RestorePurchasesButtonView().disabled(buyingProductID != nil)
+            }
             TermsOfServiceView()
         }
     }
-}
-
-enum LadingStaus {
-    /// 加载中
-    case loading
-    /// 准备加载
-    case preparing
-    /// 完成加载
-    case complete
-    /// 不可用
-    case unavailable
 }
 
 // MARK: - 产品列表
@@ -50,7 +53,7 @@ private struct ProductsListView: View {
     @EnvironmentObject var store: StoreContext
     @Binding var buyingProductID: String?
     @State var hovering: Bool = false
-    @State var loading: LadingStaus = .preparing
+    @Binding var loading: LadingStaus
     @State var products: [Product] = []
     var body: some View {
         Divider()
@@ -103,7 +106,6 @@ private struct ProductsListView: View {
             Task {
                 let products = try await store.getProducts()
                 self.products = store.products.sorted(by: { $0.price > $1.price })
-                print("self.products", self.products.count)
                 loading = self.products.count == 0 ? .unavailable : .complete
             }
         }

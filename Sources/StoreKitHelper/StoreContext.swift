@@ -75,9 +75,12 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     /// 同步存储数据
     func syncStoreData() async throws {
         let products = try await getProducts()
-        await updateProducts(products)
-        /// 更新购买信息
-        try await updatePurchases()
+        /// 可能网络问题导致数据没有获取，清空本地历史购买记录
+        if products.count > 0 {
+            await updateProducts(products)
+            /// 更新购买信息
+            try await updatePurchases()
+        }
     }
     /// 更新购买信息
     func updatePurchases() async throws {
@@ -103,7 +106,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
 }
 
 extension StoreContext {
-    static func key(_ name: String) -> String { "com.wangchujiang.storekithelp.\(name)" }
+    static func key(_ name: String) -> String { "com.wangchujiang.storekit.help.\(name)" }
 }
 
 /// This property wrapper automatically persists a new value to user defaults.
