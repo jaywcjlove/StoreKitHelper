@@ -38,7 +38,11 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     }
     /// 购买交易，同时`更新`已购买的产品 ``StoreContext/purchasedProductIds`` ID
     public var purchaseTransactions: [Transaction] = [] {
-        didSet { purchasedProductIds = purchaseTransactions.map { $0.productID } }
+        didSet {
+            DispatchQueue.main.async {
+                self.purchasedProductIds = self.purchaseTransactions.map { $0.productID }
+            }
+        }
     }
     
     /// 弹出 PopUp 显示产品支付界面
@@ -72,6 +76,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
         try await AppStore.sync()
         try await updatePurchases()
     }
+    // MARK: - 同步存储数据
     /// 同步存储数据
     func syncStoreData() async throws {
         let products = try await getProducts()
@@ -82,22 +87,16 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
             try await updatePurchases()
         }
     }
+    // MARK: - 更新购买信息
     /// 更新购买信息
     func updatePurchases() async throws {
         let transactions = try await getValidProductTransations()
         await updatePurchaseTransactions(transactions)
     }
-    /// 更新上下文产品
+    // MARK: - 更新产品
+    /// 更新产品
     func updateProducts(_ products: [Product]) {
         self.products = products
-    }
-    /// 更新交易记录
-    func updatePurchaseTransactions(with transaction: Transaction) {
-        var transactions = purchaseTransactions.filter {
-            $0.productID != transaction.productID
-        }
-        transactions.append(transaction)
-        purchaseTransactions = transactions
     }
     /// 更新上下文购买交易
     func updatePurchaseTransactions(_ transactions: [Transaction]) {

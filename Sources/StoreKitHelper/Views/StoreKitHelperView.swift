@@ -32,7 +32,11 @@ public struct StoreKitHelperView: View {
     public var body: some View {
         VStack(spacing: 0) {
             StoreKitHelperHeaderView()
-            Text(bundleName()).padding(.bottom, 14).foregroundStyle(.secondary).fontWeight(.bold)
+            if #available(iOS 16.0, *) {
+                Text(bundleName()).padding(.bottom, 14).foregroundStyle(.secondary).fontWeight(.bold)
+            } else {
+                Text(bundleName()).padding(.bottom, 14).foregroundStyle(.secondary)
+            }
             VStack(alignment: .leading, spacing: 6) {
                 pricingContent?()
             }
@@ -41,6 +45,9 @@ public struct StoreKitHelperView: View {
             if loadingProducts == .complete {
                 RestorePurchasesButtonView().disabled(buyingProductID != nil)
             }
+#if os(iOS)
+            Spacer()
+#endif
             TermsOfServiceView()
         }
     }
@@ -61,7 +68,11 @@ private struct ProductsListView: View {
             if loading == .unavailable {
                 VStack(spacing: 6) {
                     Text("store_unavailable".localized(locale: locale)).font(.system(size: 16))
-                    Text("no_in_app_purchases".localized(locale: locale)).foregroundStyle(Color.secondary).fontWeight(.thin)
+                    if #available(iOS 17.0, *) {
+                        Text("no_in_app_purchases".localized(locale: locale)).foregroundStyle(Color.secondary).fontWeight(.thin)
+                    } else {
+                        Text("no_in_app_purchases".localized(locale: locale)).fontWeight(.thin)
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.background.opacity(0.73))
@@ -182,6 +193,7 @@ private struct ProductsListLabelView: View {
             .tint(unit == .none ? .blue : .green)
             .buttonStyle(CostomPayButtonStyle(isHovered: bind, hasPurchased: hasPurchased))
             .disabled(hasPurchased)
+#if os(macOS)
             .onHover { isHovered in
                 if isHovered, hasPurchased {
                     NSCursor.operationNotAllowed.push()
@@ -194,6 +206,7 @@ private struct ProductsListLabelView: View {
             .onAppear() {
                 NSCursor.pop()
             }
+#endif
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 8)
@@ -256,7 +269,9 @@ private struct RestorePurchasesButtonView: View {
                 Text("restore_purchases".localized(locale: locale))
             }
         })
+        #if os(macOS)
         .buttonStyle(.link)
+        #endif
         .padding(.top, 10)
         .padding(.bottom, 10)
         .disabled(restoringPurchase)
@@ -300,9 +315,23 @@ private struct StoreKitHelperHeaderView: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             HStack {
-                Image(nsImage: NSImage(named: NSImage.applicationIconName)!)
-                    .resizable()
-                    .frame(width: 76, height: 76)
+                #if os(macOS)
+                    Image(nsImage: NSImage(named: NSImage.applicationIconName)!)
+                        .resizable()
+                        .frame(width: 76, height: 76)
+                #else
+                if let appIcon = Bundle.main.icon {
+                    Image(uiImage: appIcon)
+                        .resizable()
+                        .scaledToFit() // 适应图标的比例
+                        .frame(width: 76, height: 76)
+                        .clipShape(RoundedRectangle(cornerRadius: 16)) // 圆角样式
+                        .shadow(radius: 5) // 可选：添加阴影
+                        .padding(.bottom)
+                        .padding(.top)
+                        .padding(.top)
+                }
+                #endif
             }
             .padding(.top, 23)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -313,10 +342,28 @@ private struct StoreKitHelperHeaderView: View {
                     .foregroundColor(.secondary)
                     .font(.system(size: 22))
             })
+#if os(macOS)
             .padding(.trailing, 10)
             .padding(.top, 10)
+#else
+            .padding(.top)
+#endif
             .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, alignment: .topTrailing)
     }
 }
+
+#if os(iOS)
+extension Bundle {
+    public var icon: UIImage? {
+        if let icons = infoDictionary?["CFBundleIcons"] as? [String: Any],
+            let primaryIcon = icons["CFBundlePrimaryIcon"] as? [String: Any],
+            let iconFiles = primaryIcon["CFBundleIconFiles"] as? [String],
+            let lastIcon = iconFiles.last {
+            return UIImage(named: lastIcon)
+        }
+        return nil
+    }
+}
+#endif

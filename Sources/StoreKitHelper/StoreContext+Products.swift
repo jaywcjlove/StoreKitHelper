@@ -62,7 +62,7 @@ public extension StoreContext {
     /// 获取某个产品的所有有效交易
     func getValidTransaction(for productId: ProductID) async throws -> Transaction? {
         guard let latest = await Transaction.latest(for: productId) else { return nil }
-        let result = try latest.verify()
+        let result: Transaction = try latest.verify()
         return result.isValid ? result : nil
     }
     /// 监听事务更新
@@ -78,6 +78,14 @@ public extension StoreContext {
                 }
             }
         }
+    }
+    /// 更新交易记录
+    func updatePurchaseTransactions(with transaction: Transaction) {
+        var transactions = purchaseTransactions.filter {
+            $0.productID != transaction.productID
+        }
+        transactions.append(transaction)
+        purchaseTransactions = transactions
     }
 }
 

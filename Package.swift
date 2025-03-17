@@ -7,7 +7,7 @@ let package = Package(
     name: "StoreKitHelper",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v15),
+        .iOS(.v17),
         .macOS(.v14),
         .tvOS(.v15),
         .watchOS(.v8),
