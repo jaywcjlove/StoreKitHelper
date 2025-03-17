@@ -1,0 +1,18 @@
+//
+//  Localizable.strings
+//  StoreKitHelper
+//
+//  Created by wong on 3/17/25.
+//
+
+"terms_of_service" = "Conditions d'utilisation";
+"privacy_policy" = "Politique de confidentialité";
+
+"restore_purchases" = "Restaurer les achats";
+"restore_purchases_failed" = "Échec de la restauration des achats :";
+"no_purchase_available" = "Aucun achat à restaurer";
+
+"store_unavailable" = "Magasin indisponible";
+"no_in_app_purchases" = "Aucun achat intégré disponible dans le magasin.";
+
+"purchase_failed" = "Échec de l'achat";

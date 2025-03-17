@@ -1,0 +1,18 @@
+//
+//  Localizable.strings
+//  StoreKitHelper
+//
+//  Created by wong on 3/17/25.
+//
+
+"terms_of_service" = "利用規約";
+"privacy_policy" = "プライバシーポリシー";
+
+"restore_purchases" = "購入を復元";
+"restore_purchases_failed" = "購入の復元に失敗しました：";
+"no_purchase_available" = "復元可能な購入項目はありません";
+
+"store_unavailable" = "ストアは利用できません";
+"no_in_app_purchases" = "現在、ストアに利用可能なアプリ内購入はありません。";
+
+"purchase_failed" = "購入に失敗しました";
