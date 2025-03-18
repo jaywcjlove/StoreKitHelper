@@ -120,12 +120,12 @@ extension StoreContext {
     private let defaultValue: T
     var wrappedValue: T {
         get {
-            guard let data = store.object(forKey: key) as? Data else { return defaultValue }
-            let value = try? JSONDecoder().decode(T.self, from: data)
+            guard let data = store.data(forKey: key) else { return defaultValue }
+            let value = try? PropertyListDecoder().decode(T.self, from: data)
             return value ?? defaultValue
         }
         set {
-            let data = try? JSONEncoder().encode(newValue)
+            let data = try? PropertyListEncoder().encode(newValue)
             store.set(data, forKey: key)
         }
     }
