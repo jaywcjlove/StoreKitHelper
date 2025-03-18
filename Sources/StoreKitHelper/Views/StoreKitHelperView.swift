@@ -116,8 +116,13 @@ private struct ProductsListView: View {
             loading = .loading
             Task {
                 let products = try await store.getProducts()
-                self.products = store.products.sorted(by: { $0.price > $1.price })
-                loading = self.products.count == 0 ? .unavailable : .complete
+                if self.products.count == 0, store.products.count == 0 {
+                    loading = .unavailable
+                    return
+                } else if products.count > 0 {
+                    self.products = products.sorted(by: { $0.price > $1.price })
+                }
+                loading = .complete
             }
         }
         Divider().padding(.horizontal, 10)
