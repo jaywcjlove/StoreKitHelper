@@ -73,6 +73,7 @@ private struct ProductsListView: View {
                     } else {
                         Text("no_in_app_purchases".localized(locale: locale)).fontWeight(.thin)
                     }
+                    Text("network_connection_check".localized(locale: locale)).foregroundStyle(Color.yellow).fontWeight(.thin)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.background.opacity(0.73))

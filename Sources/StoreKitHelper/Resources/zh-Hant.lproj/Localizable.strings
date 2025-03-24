@@ -14,5 +14,6 @@
 
 "store_unavailable" = "商店不可用";
 "no_in_app_purchases" = "當前商店中無可用的應用內購買項目。";
+"network_connection_check" = "請確認網絡連接是否正常。";
 
 "purchase_failed" = "購買失敗";

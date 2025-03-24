@@ -14,5 +14,6 @@
 
 "store_unavailable" = "Store Unavailable";
 "no_in_app_purchases" = "No in-app purchases are available in the current storefront.";
+"network_connection_check" = "Please confirm if the network connection is working.";
 
 "purchase_failed" = "Purchase Failed";
