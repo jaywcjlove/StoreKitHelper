@@ -319,44 +319,45 @@ private struct TermsOfServiceView: View {
 private struct StoreKitHelperHeaderView: View {
     @Environment(\.popupDismissHandle) private var popupDismissHandle
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            HStack {
-                #if os(macOS)
-                    Image(nsImage: NSImage(named: NSImage.applicationIconName)!)
-                        .resizable()
-                        .frame(width: 76, height: 76)
-                #else
-                if let appIcon = Bundle.main.icon {
-                    Image(uiImage: appIcon)
-                        .resizable()
-                        .scaledToFit() // 适应图标的比例
-                        .frame(width: 76, height: 76)
-                        .clipShape(RoundedRectangle(cornerRadius: 16)) // 圆角样式
-                        .shadow(radius: 5) // 可选：添加阴影
-                        .padding(.bottom)
-                        .padding(.top)
-                        .padding(.top)
-                }
-                #endif
+        VStack {
+            #if os(macOS)
+                Image(nsImage: NSImage(named: NSImage.applicationIconName)!)
+                    .resizable()
+                    .frame(width: 76, height: 76)
+            #else
+            if let appIcon = Bundle.main.icon {
+                Image(uiImage: appIcon)
+                    .resizable()
+                    .scaledToFit() // 适应图标的比例
+                    .frame(width: 76, height: 76)
+                    .clipShape(RoundedRectangle(cornerRadius: 16)) // 圆角样式
+                    .shadow(radius: 5) // 可选：添加阴影
+                    .padding(.bottom)
+                    .padding(.top)
+                    .padding(.top)
             }
-            .padding(.top, 23)
-            .frame(maxWidth: .infinity, alignment: .center)
-            Button(action: {
-                popupDismissHandle?()
-            }, label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 22))
-            })
-#if os(macOS)
-            .padding(.trailing, 10)
-            .padding(.top, 10)
-#else
-            .padding(.top)
-#endif
-            .buttonStyle(.plain)
+            #endif
         }
-        .frame(maxWidth: .infinity, alignment: .topTrailing)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            VStack(alignment: .trailing) {
+                    Button(action: {
+                        popupDismissHandle?()
+                    }, label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 22))
+                    })
+        #if os(macOS)
+                    .padding(.trailing, 10)
+                    .padding(.top, 10)
+        #else
+                    .padding(.top)
+        #endif
+                    .buttonStyle(.plain)
+            }
+            .frame(maxWidth: .infinity, alignment: .topTrailing)
+        }
     }
 }
 
