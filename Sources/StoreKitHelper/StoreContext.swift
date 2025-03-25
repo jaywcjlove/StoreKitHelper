@@ -53,7 +53,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
         self.init(productIds: products.map { $0.id })
     }
     public init(productIds: [ProductID] = []) {
-        // 赋值产品 ID（持久化逻辑）
+        // 产品 ID（持久化逻辑）
         self.productIds = persistedProductIds.isEmpty || productIds.count != persistedProductIds.count
                     ? productIds : persistedProductIds
         purchasedProductIds = persistedPurchasedProductIds

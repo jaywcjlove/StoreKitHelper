@@ -340,23 +340,25 @@ private struct StoreKitHelperHeaderView: View {
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .safeAreaInset(edge: .top, spacing: 0) {
-            VStack(alignment: .trailing) {
-                    Button(action: {
-                        popupDismissHandle?()
-                    }, label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                            .font(.system(size: 22))
-                    })
-        #if os(macOS)
-                    .padding(.trailing, 10)
-                    .padding(.top, 10)
-        #else
-                    .padding(.top)
-        #endif
-                    .buttonStyle(.plain)
+            HStack {
+                Spacer()
+                Button(action: {
+                    popupDismissHandle?()
+                }, label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 22))
+                })
+    #if os(macOS)
+                .padding(.trailing, 10)
+                .padding(.top, 10)
+    #else
+                .padding(.top)
+    #endif
+                .buttonStyle(.plain)
             }
-            .frame(maxWidth: .infinity, alignment: .topTrailing)
+            .frame(alignment: .topTrailing)
+            .frame(height: 32)
         }
     }
 }
