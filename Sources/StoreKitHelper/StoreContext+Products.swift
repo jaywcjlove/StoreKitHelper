@@ -35,13 +35,21 @@ public extension StoreContext {
     @discardableResult
     func purchaseResult(_ product: Product) async throws -> (Product.PurchaseResult, Transaction?) {
         let result = try await product.purchase()
+        var transaction: Transaction? = nil
         switch result {
-        case .success(let result): try await finalizePurchaseResult(result)
+        case .success(let result):
+            switch result {
+            case .verified(let verifiedTransaction):
+                transaction = verifiedTransaction  // 提取已验证的 Transaction
+                try await finalizePurchaseResult(result)  // 处理已验证的交易
+            case .unverified: break
+            }
         case .pending: break
         case .userCancelled: break
         @unknown default: break
         }
-        return (result, nil)
+        
+        return (result, transaction)
     }
     /// Finalize a purchase result from a ``purchaseResult(_:)``.
     /// 购买结果确认

@@ -21,7 +21,6 @@ enum LadingStaus {
 
 public struct StoreKitHelperView: View {
     @Environment(\.pricingContent) private var pricingContent
-    @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
     @State var buyingProductID: String? = nil
     @State var loadingProducts: LadingStaus = .preparing
