@@ -16,4 +16,7 @@
 "no_in_app_purchases" = "현재 상점에 사용 가능한 인앱 구매 항목이 없습니다.";
 "network_connection_check" = "네트워크 연결이 정상적인지 확인해주세요.";
 
+"purchase" = "구매";
 "purchase_failed" = "구매 실패";
+
+"unlock_premium" = "프리미엄 잠금 해제";

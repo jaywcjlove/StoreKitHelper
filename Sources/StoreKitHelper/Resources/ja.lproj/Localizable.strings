@@ -16,4 +16,7 @@
 "no_in_app_purchases" = "現在、ストアに利用可能なアプリ内購入はありません。";
 "network_connection_check" = "ネットワーク接続が正常か確認してください。";
 
+"purchase" = "購入";
 "purchase_failed" = "購入に失敗しました";
+
+"unlock_premium" = "プレミアムを解除";

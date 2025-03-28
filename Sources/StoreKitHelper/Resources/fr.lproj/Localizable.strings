@@ -16,4 +16,7 @@
 "no_in_app_purchases" = "Aucun achat intégré disponible dans le magasin.";
 "network_connection_check" = "Veuillez confirmer si la connexion réseau fonctionne.";
 
+"purchase" = "Acheter";
 "purchase_failed" = "Échec de l'achat";
+
+"unlock_premium" = "Déverrouiller Premium";

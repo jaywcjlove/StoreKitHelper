@@ -16,4 +16,7 @@
 "store_unavailable" = "Store nicht verfügbar";
 "no_in_app_purchases" = "Aktuell sind keine In-App-Käufe im Store verfügbar.";
 
+"purchase" = "Kaufen";
 "purchase_failed" = "Kauf fehlgeschlagen";
+
+"unlock_premium" = "Premium freischalten";

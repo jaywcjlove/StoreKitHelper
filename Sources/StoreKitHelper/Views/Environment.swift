@@ -23,11 +23,13 @@ struct PrivacyPolicyHandle: @preconcurrency EnvironmentKey {
 struct PrivacyPolicyLabel: @preconcurrency EnvironmentKey {
     @MainActor static let defaultValue: String = ""
 }
-struct PricingContent: @preconcurrency EnvironmentKey {
-    @MainActor static var defaultValue: PricingContentType? = nil
+// 定义一个环境键，泛型视图类型
+struct PricingContent<T: View>: EnvironmentKey {
+    // 使用计算属性来提供默认值
+    static var defaultValue: (() -> T)? {
+        return nil  // 可以返回一个默认的视图构造方法
+    }
 }
-
-public typealias PricingContentType = () -> AnyView
 
 extension EnvironmentValues {
     var termsOfServiceLabel: String {
@@ -46,15 +48,16 @@ extension EnvironmentValues {
         get { self[PrivacyPolicyHandle.self] }
         set { self[PrivacyPolicyHandle.self] = newValue }
     }
-    /// 付费说明内容 - 定价说明
-    var pricingContent: PricingContentType? {
-        get { self[PricingContent.self] }
-        set { self[PricingContent.self] = newValue }
-    }
     /// 弹出框，关闭函数
     var popupDismissHandle: (() -> Void)? {
         get { self[PopupDismissHandle.self] }
         set { self[PopupDismissHandle.self] = newValue }
+    }
+    /// 定价说明内容
+    /// 付费说明内容 - 定价说明
+    var pricingContent: (() -> AnyView)? {
+        get { self[PricingContent.self] }
+        set { self[PricingContent.self] = newValue }
     }
 }
 
@@ -74,12 +77,12 @@ public extension View {
         return self.environment(\.privacyPolicyLabel, label)
                 .environment(\.privacyPolicyHandle, action)
     }
-    /// 定价说明
-    func pricingContent(action: PricingContentType? = nil) -> some View {
-        return self.environment(\.pricingContent, action)
-    }
     /// 弹出框，关闭函数
     func onPopupDismiss(action: @escaping () -> Void) -> some View {
         return self.environment(\.popupDismissHandle, action)
+    }
+    /// 定价说明
+    func pricingContent<T: View>(@ViewBuilder content: @escaping () -> T) -> some View {
+        return self.environment(\.pricingContent, { AnyView(content()) })
     }
 }
