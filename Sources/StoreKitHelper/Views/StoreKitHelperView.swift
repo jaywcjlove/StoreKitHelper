@@ -232,25 +232,27 @@ private struct HeaderView: View {
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .safeAreaInset(edge: .top, spacing: 0) {
-            HStack {
-                Spacer()
-                Button(action: {
-                    popupDismissHandle?()
-                }, label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
-                        .font(.system(size: 22))
-                })
-    #if os(macOS)
-                .padding(.trailing, 10)
-                .padding(.top, 10)
-    #else
-                .padding(.top)
-    #endif
-                .buttonStyle(.plain)
+            if let popupDismissHandle {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        popupDismissHandle()
+                    }, label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 22))
+                    })
+        #if os(macOS)
+                    .padding(.trailing, 10)
+                    .padding(.top, 10)
+        #else
+                    .padding(.top)
+        #endif
+                    .buttonStyle(.plain)
+                }
+                .frame(alignment: .topTrailing)
+                .frame(height: 32)
             }
-            .frame(alignment: .topTrailing)
-            .frame(height: 32)
         }
         if #available(iOS 16.0, *) {
             Text(bundleName()).padding(.bottom, 14).foregroundStyle(.secondary).fontWeight(.bold)

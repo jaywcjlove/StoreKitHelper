@@ -265,14 +265,16 @@ private struct HeaderView: View {
             #endif
             Text(title ?? "unlock_premium".localized(locale: locale)).font(.system(size: 14, weight: .bold))
             Spacer()
-            Button(action: {
-                popupDismissHandle?()
-            }, label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 18))
-            })
-            .buttonStyle(.plain)
+            if let popupDismissHandle {
+                Button(action: {
+                    popupDismissHandle()
+                }, label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 18))
+                })
+                .buttonStyle(.plain)
+            }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
