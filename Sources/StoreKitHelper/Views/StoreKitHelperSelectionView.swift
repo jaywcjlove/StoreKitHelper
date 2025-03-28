@@ -99,6 +99,7 @@ fileprivate struct ProductsListView: View {
     }
     /// 有购买，禁用`订阅`，`非消耗型`，不禁用`消耗型`
     func isDisabled(product: Product) -> Bool {
+        guard store.purchasedProductIds.count > 0 else { return false }
         guard store.purchasedProductIds.contains(product.id) else {
             return true
         }
