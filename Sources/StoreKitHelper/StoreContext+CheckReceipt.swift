@@ -9,25 +9,27 @@ import Foundation
 import StoreKit
 
 extension StoreContext {
-    // 检查收据的存在
-    func checkReceipt() async {
+    /// 检查收据的存在
+    /// 返回当前有效的（未过期的）购买或订阅记录。适用于验证当前活跃的订阅或购买权限。
+    func checkReceipt() async -> Bool {
         guard Bundle.main.appStoreReceiptURL != nil else {
             exitWithStatus173()
-            return
+            return false
         }
         var hasValidTransaction = false
-        for await transaction in Transaction.all {
-            if case .verified(let transaction) = transaction {
+        /// 返回一个包含当前有效的 已购买商品 的交易列表
+        let entitlements = await Transaction.currentEntitlements
+        for await result in entitlements {
+            switch result {
+            case let .verified(transaction):
+                print("Product ID: \(transaction.productID), Purchase Date: \(transaction.purchaseDate)")
                 await self.updatePurchaseTransactions(with: transaction)
                 hasValidTransaction = true
-                break
+            case let .unverified(transaction, error):
+                print("Unverified transaction: \(error.localizedDescription ?? "Unknown error")")
             }
         }
-        if !hasValidTransaction {
-            // 没有找到任何有效的交易，处理这种情况
-            // print("No valid transactions found.")
-            // 你可以在这里添加处理逻辑，例如显示提示或退出应用
-        }
+        return hasValidTransaction
     }
 
     // 退出应用并返回状态码 173

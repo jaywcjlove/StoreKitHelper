@@ -8,7 +8,6 @@
 import SwiftUI
 import StoreKit
 
-
 /// 用户更新产品列表
 struct ProductsLoadList<Content: View>: View {
     @Environment(\.popupDismissHandle) private var popupDismissHandle
@@ -32,10 +31,11 @@ struct ProductsLoadList<Content: View>: View {
                 VStack {
                     ProgressView().controlSize(.small)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
                 .background(.background.opacity(0.73))
             }
         })
+        .frame(minHeight: 23)
         .padding(6)
         .onChange(of: store.products, initial: true, { old, val in
             products = store.products.sorted(by: { $0.price > $1.price })

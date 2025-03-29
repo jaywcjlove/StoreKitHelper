@@ -14,7 +14,7 @@
 
 "store_unavailable" = "Magasin indisponible";
 "no_in_app_purchases" = "Aucun achat intégré disponible dans le magasin.";
-"network_connection_check" = "Veuillez confirmer si la connexion réseau fonctionne.";
+"network_connection_check" = "Vérifiez votre connexion réseau. Si elle fonctionne mais que le magasin est toujours indisponible, essayez de [redémarrer](restartapp) l'application.";
 
 "purchase" = "Acheter";
 "purchase_failed" = "Échec de l'achat";

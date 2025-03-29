@@ -14,7 +14,7 @@
 
 "store_unavailable" = "商店不可用";
 "no_in_app_purchases" = "当前商店中无可用的应用内购买项目。";
-"network_connection_check" = "请确认网络连接是否正常。";
+"network_connection_check" = "请检查网络连接，若正常但商店仍不可用，可尝试[重新启动](restartapp)应用。";
 
 "purchase" = "购买";
 "purchase_failed" = "购买失败";

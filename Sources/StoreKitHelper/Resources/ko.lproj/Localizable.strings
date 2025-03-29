@@ -14,7 +14,7 @@
 
 "store_unavailable" = "상점 이용 불가";
 "no_in_app_purchases" = "현재 상점에 사용 가능한 인앱 구매 항목이 없습니다.";
-"network_connection_check" = "네트워크 연결이 정상적인지 확인해주세요.";
+"network_connection_check" = "네트워크 연결을 확인하세요. 정상적으로 연결되어 있지만 스토어가 여전히 사용 불가능한 경우, 앱을[재시작](restartapp)해 보세요.";
 
 "purchase" = "구매";
 "purchase_failed" = "구매 실패";

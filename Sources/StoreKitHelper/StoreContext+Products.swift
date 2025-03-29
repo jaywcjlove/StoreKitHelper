@@ -20,6 +20,9 @@ public extension StoreContext {
         products.first { $0.id == id }
     }
     func getProducts() async throws -> [Product] {
+        /// ⚠️ 苹果缓`存机制`导致，列表获取为`空`
+        /// `重现问题:` 如果网络先断掉，启动应用，无法获取应用可购买的产品列表，再打开应用，获取仍然无法获取产品列表，需要重启应用，才能重新获取
+        /// 暂时没有找到解决方案，在支付界面提示用户`重启应用`
         return try await Product.products(for: productIds)
     }
     // MARK: - 购买

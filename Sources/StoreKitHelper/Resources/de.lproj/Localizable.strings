@@ -11,7 +11,7 @@
 "restore_purchases" = "Käufe wiederherstellen";
 "restore_purchases_failed" = "Wiederherstellung der Käufe fehlgeschlagen:";
 "no_purchase_available" = "Keine wiederherstellbaren Käufe verfügbar";
-"network_connection_check" = "Bitte überprüfen Sie, ob die Netzwerkverbindung verfügbar ist.";
+"network_connection_check" = "Überprüfen Sie die Netzwerkverbindung. Wenn diese normal ist, aber der Store immer noch nicht verfügbar ist, versuchen Sie, die App [neu zu starten](restartapp).";
 
 "store_unavailable" = "Store nicht verfügbar";
 "no_in_app_purchases" = "Aktuell sind keine In-App-Käufe im Store verfügbar.";
