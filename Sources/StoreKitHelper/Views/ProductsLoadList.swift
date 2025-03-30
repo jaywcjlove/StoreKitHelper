@@ -14,11 +14,12 @@ struct ProductsLoadList<Content: View>: View {
     @EnvironmentObject var store: StoreContext
     @Binding var loading: LadingStaus
     @State var products: [Product] = []
+    @State var error: StoreKitError? = nil
     var content: () -> Content
     var body: some View {
         VStack(spacing: 0) {
             if loading == .unavailable {
-                ProductsUnavailableView()
+                ProductsUnavailableView(error: $error)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(.background.opacity(0.73))
                     .padding(8)
@@ -42,15 +43,21 @@ struct ProductsLoadList<Content: View>: View {
         })
         .onAppear() {
             loading = .loading
+            error = nil
             Task {
-                let products = try await store.getProducts()
-                if self.products.count == 0, store.products.count == 0 {
+                do {
+                    let products = try await store.getProducts()
+                    if self.products.count == 0, store.products.count == 0 {
+                        loading = .unavailable
+                        return
+                    } else if products.count > 0 {
+                        self.products = products.sorted(by: { $0.price > $1.price })
+                    }
+                    loading = .complete
+                } catch {
                     loading = .unavailable
-                    return
-                } else if products.count > 0 {
-                    self.products = products.sorted(by: { $0.price > $1.price })
+                    self.error = error as? StoreKitError
                 }
-                loading = .complete
             }
         }
     }
