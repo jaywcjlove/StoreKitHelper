@@ -42,7 +42,7 @@ public struct StoreKitHelperView: View {
             ProductsLoadList(loading: $loadingProducts) {
                 ProductsListView(buyingProductID: $buyingProductID, loading: $loadingProducts)
             }
-            if loadingProducts == .complete {
+            if loadingProducts == .complete || loadingProducts == .loading {
                 Divider()
                 HStack {
                     RestorePurchasesButtonView(restoringPurchase: $restoringPurchase).disabled(buyingProductID != nil)
@@ -52,9 +52,14 @@ public struct StoreKitHelperView: View {
 #if os(iOS)
             Spacer()
 #endif
-            TermsOfServiceView()
-                .padding(.top, 0)
-                .padding(.bottom, 8)
+        }
+        .frame(maxWidth: .infinity)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 0) {
+                TermsOfServiceView()
+                    .padding(.top, 0)
+                    .padding(.bottom, 8)
+            }
         }
     }
 }
@@ -178,7 +183,9 @@ private struct ProductsListLabelView: View {
         .padding(.vertical, 6)
         .padding(.horizontal, 8)
         .onHover { isHovered in
-            hovering = isHovered
+            withAnimation {
+                hovering = isHovered
+            }
         }
         .background(
             RoundedRectangle(cornerRadius: 5).fill(Color.secondary.opacity(hovering == true ? 0.23 : 0))

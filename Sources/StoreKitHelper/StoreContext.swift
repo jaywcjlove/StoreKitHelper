@@ -84,9 +84,9 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
         /// 可能网络问题导致数据没有获取，清空本地历史购买记录
         if products.count > 0 {
             await updateProducts(products)
-            /// 更新购买信息
-            try await updatePurchases()
         }
+        /// 更新购买信息
+        try await updatePurchases()
     }
     // MARK: - 更新购买信息
     /// 更新购买信息

@@ -22,8 +22,10 @@ extension StoreContext {
         for await result in entitlements {
             switch result {
             case let .verified(transaction):
-                await self.updatePurchaseTransactions(with: transaction)
-                hasValidTransaction = true
+                if let transaction = try? await getValidTransaction(for: transaction.productID) {
+                    await self.updatePurchaseTransactions(with: transaction)
+                    hasValidTransaction = true
+                }
             case let .unverified(transaction, error):
                 print("Unverified transaction: \(error.localizedDescription ?? "Unknown error")")
             }

@@ -36,22 +36,24 @@ struct ProductsLoadList<Content: View>: View {
                 .background(.background.opacity(0.73))
             }
         })
-        .frame(minHeight: 23)
-        .padding(6)
-        .onChange(of: store.products, initial: true, { old, val in
-            products = store.products.sorted(by: { $0.price > $1.price })
+        .frame(minHeight: 23 * CGFloat((store.products.count > 0 ? store.products.count : 1)))
+        .onChange(of: products, initial: false, { old, val in
+            if products.count > 0 {
+                store.products = products
+            }
         })
+        .padding(6)
         .onAppear() {
             loading = .loading
             error = nil
             Task {
                 do {
                     let products = try await store.getProducts()
-                    if self.products.count == 0, store.products.count == 0 {
+                    if products.count == 0, store.products.count == 0 {
                         loading = .unavailable
                         return
                     } else if products.count > 0 {
-                        self.products = products.sorted(by: { $0.price > $1.price })
+                        self.products = products.sorted(by: { $0.price < $1.price })
                     }
                     loading = .complete
                 } catch {
