@@ -7,7 +7,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     /// 更新
     private var transactionUpdateTask: Task<Void, Never>? = nil
     /**
-    已同步的产品列表。
+    已同步的产品列表。`用于缓存目的`
 
     您可以使用此属性来跟踪从 StoreKit 获取的产品集合。
 
@@ -15,16 +15,16 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
      */
     @Persisted(key: key("productIds"), defaultValue: [])
     private var persistedProductIds: [String]
+    // MARK: - 产品列表 ID
     /// 产品列表 ID
     @Published public internal(set) var productIds: [String] = [] {
         willSet { persistedProductIds = newValue }
     }
+    // MARK: - 产品列表
     /// 产品列表 -  更新 ``StoreContext/productIds`` ID，通过 ``StoreContext/updateProducts(_:)`` 更新产品列表
-    @Published public var products: [Product] = [] {
-        didSet { productIds = products.map { $0.id} }
-    }
+    @Published public var products: [Product] = []
     /**
-    购买的产品 ID 列表。
+    购买的产品 ID 列表。`用于缓存目的`
 
     您可以使用此属性来跟踪从 StoreKit 获取的已购买产品。
 
@@ -32,6 +32,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     您可以将这些 ID 映射到本地的产品表示。
      */
     @Persisted(key: key("purchasedProductIds"), defaultValue: []) private var persistedPurchasedProductIds: [String]
+    // MARK: - 已购买产品 ID
     /// 已购买的产品ID，限制 id 只能在模块中修改
     @Published public internal(set) var purchasedProductIds: [String] = [] {
         willSet { persistedPurchasedProductIds = newValue }
@@ -53,10 +54,10 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
         self.init(productIds: products.map { $0.id })
     }
     public init(productIds: [ProductID] = []) {
-        // 产品 ID（持久化逻辑）
-        self.productIds = persistedProductIds.isEmpty || productIds.count != persistedProductIds.count
-                    ? productIds : persistedProductIds
-        purchasedProductIds = persistedPurchasedProductIds
+        /// 产品 ID（持久化逻辑）
+        self.productIds = productIds.count > 0 ? productIds : persistedProductIds
+        /// `已购`产品 ID（持久化逻辑）
+        self.purchasedProductIds = persistedPurchasedProductIds
         transactionUpdateTask = updateTransactionsOnLaunch()
         Task {
             await self.checkReceipt()
@@ -98,8 +99,16 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     func updateProducts(_ products: [Product]) {
         self.products = products
     }
-    /// 更新上下文购买交易
+    /// 更新购买交易 - 多条数据
     func updatePurchaseTransactions(_ transactions: [Transaction]) {
+        purchaseTransactions = transactions
+    }
+    /// 更新交易记录 - 1条
+    func updatePurchaseTransactions(with transaction: Transaction) {
+        var transactions = purchaseTransactions.filter {
+            $0.productID != transaction.productID
+        }
+        transactions.append(transaction)
         purchaseTransactions = transactions
     }
 }

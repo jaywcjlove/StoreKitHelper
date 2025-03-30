@@ -32,7 +32,7 @@ struct ProductsLoadList<Content: View>: View {
                 VStack {
                     ProgressView().controlSize(.small)
                 }
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.background.opacity(0.73))
             }
         })

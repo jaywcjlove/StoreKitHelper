@@ -22,7 +22,6 @@ extension StoreContext {
         for await result in entitlements {
             switch result {
             case let .verified(transaction):
-                print("Product ID: \(transaction.productID), Purchase Date: \(transaction.purchaseDate)")
                 await self.updatePurchaseTransactions(with: transaction)
                 hasValidTransaction = true
             case let .unverified(transaction, error):

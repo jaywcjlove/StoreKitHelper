@@ -60,7 +60,7 @@ public extension StoreContext {
         let transaction = try result.verify()
         await transaction.finish()
     }
-    
+    /// 获得有效的产品交易
     func getValidProductTransations() async throws -> [Transaction] {
         var transactions: [Transaction] = []
         for id in productIds {
@@ -89,14 +89,6 @@ public extension StoreContext {
                 }
             }
         }
-    }
-    /// 更新交易记录
-    func updatePurchaseTransactions(with transaction: Transaction) {
-        var transactions = purchaseTransactions.filter {
-            $0.productID != transaction.productID
-        }
-        transactions.append(transaction)
-        purchaseTransactions = transactions
     }
 }
 
