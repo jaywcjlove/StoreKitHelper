@@ -8,6 +8,12 @@
 import StoreKit
 
 public extension StoreContext {
+    /// 是否有购买
+    /// 返回 `true` 需要购买
+    var hasNotPurchased: Bool {
+        purchasedProductIds.count == 0
+    }
+    /// 产品购买了
     func isProductPurchased(id: ProductID) -> Bool {
         purchasedProductIds.contains(id)
     }
