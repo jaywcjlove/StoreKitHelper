@@ -262,9 +262,9 @@ private struct HeaderView: View {
             }
         }
         if #available(iOS 16.0, *) {
-            Text(bundleName()).padding(.bottom, 14).foregroundStyle(.secondary).fontWeight(.bold)
+            Text(bundleName()).padding(.bottom, 6).foregroundStyle(.secondary).fontWeight(.bold)
         } else {
-            Text(bundleName()).padding(.bottom, 14).foregroundStyle(.secondary)
+            Text(bundleName()).padding(.bottom, 6).foregroundStyle(.secondary)
         }
     }
 }
