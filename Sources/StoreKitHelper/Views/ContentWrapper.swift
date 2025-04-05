@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-struct ViewHeightKey: @preconcurrency PreferenceKey {
+struct ViewHeightKey: PreferenceKey {
     typealias Value = CGFloat
-    @MainActor static var defaultValue: CGFloat = 0
+    nonisolated(unsafe) static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = max(value, nextValue())
     }
@@ -26,7 +26,9 @@ struct ContentWrapper<Content: View>: View {
             Color.clear.preference(key: ViewHeightKey.self, value: geometry.size.height)
         })
         .onPreferenceChange(ViewHeightKey.self) { newHeight in
-            viewHeight = newHeight
+            DispatchQueue.main.async {
+                self.viewHeight = newHeight
+            }
         }
         .frame(minHeight: viewHeight)
     }
