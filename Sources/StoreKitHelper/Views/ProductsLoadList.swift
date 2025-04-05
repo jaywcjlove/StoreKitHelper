@@ -36,7 +36,6 @@ struct ProductsLoadList<Content: View>: View {
                 .background(.background.opacity(0.73))
             }
         })
-        .frame(minHeight: 23 * CGFloat((store.products.count > 0 ? store.products.count : 1)))
         .onChange(of: products, initial: false, { old, val in
             if products.count > 0 {
                 store.products = products

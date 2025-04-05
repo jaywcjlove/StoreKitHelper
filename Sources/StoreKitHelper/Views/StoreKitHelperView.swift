@@ -31,34 +31,37 @@ public struct StoreKitHelperView: View {
     @State var restoringPurchase: Bool = false
     public init() {}
     public var body: some View {
-        VStack(spacing: 0) {
-            HeaderView()
-            VStack(alignment: .leading, spacing: 6) {
-                pricingContent?()
-            }
-            .padding(.top, 12)
-            .padding(.bottom, 12)
-            Divider()
-            ProductsLoadList(loading: $loadingProducts) {
-                ProductsListView(buyingProductID: $buyingProductID, loading: $loadingProducts)
-            }
-            if loadingProducts == .complete || loadingProducts == .loading {
-                Divider()
-                HStack {
-                    RestorePurchasesButtonView(restoringPurchase: $restoringPurchase).disabled(buyingProductID != nil)
-                }
-                .padding(.vertical, 10)
-            }
-#if os(iOS)
-            Spacer()
-#endif
-        }
-        .frame(maxWidth: .infinity)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+        ContentWrapper {
             VStack(spacing: 0) {
-                TermsOfServiceView()
-                    .padding(.top, 0)
-                    .padding(.bottom, 8)
+                HeaderView()
+                VStack(alignment: .leading, spacing: 6) {
+                    pricingContent?()
+                }
+                .padding(.top, 12)
+                .padding(.bottom, 12)
+                Divider()
+                ProductsLoadList(loading: $loadingProducts) {
+                    ProductsListView(buyingProductID: $buyingProductID, loading: $loadingProducts)
+                }
+                if loadingProducts == .complete || loadingProducts == .loading {
+                    Divider()
+                    HStack {
+                        RestorePurchasesButtonView(restoringPurchase: $restoringPurchase).disabled(buyingProductID != nil)
+                    }
+                    .padding(.vertical, 10)
+                }
+#if os(iOS)
+                Spacer()
+#endif
+            }
+            .frame(minWidth: 230)
+            .frame(maxWidth: .infinity)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack(spacing: 0) {
+                    TermsOfServiceView()
+                        .padding(.top, 0)
+                        .padding(.bottom, 8)
+                }
             }
         }
     }

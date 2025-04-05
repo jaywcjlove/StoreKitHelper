@@ -30,41 +30,42 @@ public struct StoreKitHelperSelectionView: View {
         }
     }
     public var body: some View {
-        VStack(spacing: 0) {
-            HeaderView(title: title)
-            Divider()
-            if let pricingContent {
-                VStack(alignment: .leading, spacing: 6) {
-                    pricingContent()
-                }
-                .padding(.top, 12)
-                .padding(.bottom, 12)
+        ContentWrapper {
+            VStack(spacing: 0) {
+                HeaderView(title: title)
                 Divider()
-            }
-            ProductsLoadList(loading: $loadingProducts) {
-                ProductsListView(selectedProductID: $selectedProductID, buyingProductID: $buyingProductID)
-                    .disabled(restoringPurchase)
-            }
-            Divider()
-            VStack {
-                HStack {
-                    PurchaseButtonView(
-                        selectedProductID: $selectedProductID,
-                        buyingProductID: $buyingProductID,
-                        loading: $loadingProducts
-                    )
-                    RestorePurchasesButtonView(restoringPurchase: $restoringPurchase).disabled(buyingProductID != nil)
+                if let pricingContent {
+                    VStack(alignment: .leading, spacing: 6) {
+                        pricingContent()
+                    }
+                    .padding(.top, 12)
+                    .padding(.bottom, 12)
+                    Divider()
                 }
-                .disabled(buyingProductID != nil || loadingProducts == .loading)
+                ProductsLoadList(loading: $loadingProducts) {
+                    ProductsListView(selectedProductID: $selectedProductID, buyingProductID: $buyingProductID)
+                        .disabled(restoringPurchase)
+                }
+                Divider()
+                VStack {
+                    HStack {
+                        PurchaseButtonView(
+                            selectedProductID: $selectedProductID,
+                            buyingProductID: $buyingProductID,
+                            loading: $loadingProducts
+                        )
+                        RestorePurchasesButtonView(restoringPurchase: $restoringPurchase).disabled(buyingProductID != nil)
+                    }
+                    .disabled(buyingProductID != nil || loadingProducts == .loading)
+                }
+                .padding(.trailing, 6)
+                .padding(.vertical, 10)
+                .disabled(restoringPurchase)
+                TermsOfServiceView()
+                    .padding(.bottom, 8)
+                    .buttonStyle(.link)
             }
-            .padding(.trailing, 6)
-            .padding(.vertical, 10)
-            .disabled(restoringPurchase)
-            TermsOfServiceView()
-                .padding(.bottom, 8)
-                .buttonStyle(.link)
         }
-        .frame(minHeight: 120)
     }
 }
 
