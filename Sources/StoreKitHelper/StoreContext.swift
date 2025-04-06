@@ -97,7 +97,15 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     // MARK: - 更新产品
     /// 更新产品
     func updateProducts(_ products: [Product]) {
-        self.products = products
+        let productIdSet = Set(productIds)
+        self.products = products.filter { productIdSet.contains($0.id) }
+            .sorted {
+                if let index1 = productIds.firstIndex(of: $0.id),
+                   let index2 = productIds.firstIndex(of: $1.id) {
+                    return index1 < index2
+                }
+                return false
+            }
     }
     /// 更新购买交易 - 多条数据
     func updatePurchaseTransactions(_ transactions: [Transaction]) {

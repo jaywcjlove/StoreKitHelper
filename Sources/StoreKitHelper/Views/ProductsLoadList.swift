@@ -36,9 +36,19 @@ struct ProductsLoadList<Content: View>: View {
                 .background(.background.opacity(0.73))
             }
         })
+        .frame(minHeight: CGFloat(store.productIds.count) * 12)
         .onChange(of: products, initial: false, { old, val in
             if products.count > 0 {
-                store.products = products
+                let productIdSet = Set(store.productIds)
+                /// 根据 id 进行排序
+                store.products = products.filter { productIdSet.contains($0.id) }
+                    .sorted {
+                        if let index1 = store.productIds.firstIndex(of: $0.id),
+                           let index2 = store.productIds.firstIndex(of: $1.id) {
+                            return index1 < index2
+                        }
+                        return false
+                    }
             }
         })
         .padding(6)
@@ -52,7 +62,7 @@ struct ProductsLoadList<Content: View>: View {
                         loading = .unavailable
                         return
                     } else if products.count > 0 {
-                        self.products = products.sorted(by: { $0.price < $1.price })
+                        self.products = products
                     }
                     loading = .complete
                 } catch {
