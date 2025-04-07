@@ -9,14 +9,18 @@ import SwiftUI
 import StoreKit
 
 /// 用户更新产品列表
-struct ProductsLoadList<Content: View>: View {
+public struct ProductsLoadList<Content: View>: View {
     @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
-    @Binding var loading: LadingStaus
+    @Binding var loading: ProductsLadingStaus
     @State var products: [Product] = []
     @State var error: StoreKitError? = nil
+    public init(loading: Binding<ProductsLadingStaus>, @ViewBuilder content: @escaping () -> Content) {
+        self._loading = loading
+        self.content = content
+    }
     var content: () -> Content
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             if loading == .unavailable {
                 ProductsUnavailableView(error: $error)

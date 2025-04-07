@@ -17,7 +17,7 @@ public struct StoreKitHelperSelectionView: View {
     /// 选中的产品ID
     @State var selectedProductID: String? = nil
     /// `产品`正在加载中...
-    @State var loadingProducts: LadingStaus = .preparing
+    @State var loadingProducts: ProductsLadingStaus = .preparing
     /// 恢复购买中....
     @State var restoringPurchase: Bool = false
     var title: String? = nil
@@ -63,7 +63,9 @@ public struct StoreKitHelperSelectionView: View {
                 .disabled(restoringPurchase)
                 TermsOfServiceView()
                     .padding(.bottom, 8)
+#if os(macOS)
                     .buttonStyle(.link)
+#endif
             }
         }
     }
@@ -133,7 +135,7 @@ struct PurchaseButtonView: View {
     @EnvironmentObject var store: StoreContext
     @Binding var selectedProductID: ProductID?
     @Binding var buyingProductID: String?
-    @Binding var loading: LadingStaus
+    @Binding var loading: ProductsLadingStaus
     var body: some View {
         Button(action: {
             guard let product = store.products.first(where: { $0.id == selectedProductID }) else {
@@ -218,7 +220,7 @@ struct ProductListLabelView: View {
                     if let localizedDescription = unit?.localizedDescription {
                         Text("\(displayPrice)").font(.system(size: 12)) + Text(" / \(localizedDescription)").font(.system(size: 10))
                     } else {
-                        Text("\(displayPrice)")
+                        Text("\(displayPrice)").font(.system(size: 12))
                     }
                 }
             }

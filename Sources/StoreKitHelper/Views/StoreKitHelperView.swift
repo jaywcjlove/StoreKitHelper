@@ -8,7 +8,7 @@
 import SwiftUI
 import StoreKit
 
-enum LadingStaus {
+public enum ProductsLadingStaus {
     /// 加载中
     case loading
     /// 准备加载
@@ -26,7 +26,7 @@ public struct StoreKitHelperView: View {
     /// 正在`购买`中
     @State var buyingProductID: String? = nil
     /// `产品`正在加载中...
-    @State var loadingProducts: LadingStaus = .preparing
+    @State var loadingProducts: ProductsLadingStaus = .preparing
     /// 恢复购买中....
     @State var restoringPurchase: Bool = false
     public init() {}
@@ -73,7 +73,7 @@ private struct ProductsListView: View {
     @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
     @Binding var buyingProductID: String?
-    @Binding var loading: LadingStaus
+    @Binding var loading: ProductsLadingStaus
     @State var hovering: Bool = false
     var body: some View {
         ForEach(store.products) { product in
@@ -158,11 +158,12 @@ private struct ProductsListLabelView: View {
                         Image(systemName: "cart").font(.system(size: 10))
                     }
                     if let localizedDescription = unit?.localizedDescription {
-                        Text("\(displayPrice)").font(.system(size: 12)) + Text(" / \(localizedDescription)").font(.system(size: 10))
+                        Text("\(displayPrice)") + Text(" / \(localizedDescription)").font(.system(size: 10))
                     } else {
                         Text("\(displayPrice)")
                     }
                 }
+                .font(.system(size: 12))
                 .contentShape(Rectangle())
             })
             .tint(unit == .none ? .blue : .green)
