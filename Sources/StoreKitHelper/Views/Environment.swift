@@ -31,7 +31,7 @@ struct PricingContent<T: View>: EnvironmentKey {
     }
 }
 
-extension EnvironmentValues {
+public extension EnvironmentValues {
     var termsOfServiceLabel: String {
         get { self[TermsOfServiceLabel.self] }
         set { self[TermsOfServiceLabel.self] = newValue }
