@@ -15,10 +15,13 @@ struct ViewHeightKey: PreferenceKey {
     }
 }
 
-struct ContentWrapper<Content: View>: View {
+public struct ProductsContentWrapper<Content: View>: View {
     @State private var viewHeight: CGFloat = 0
     var content: () -> Content
-    var body: some View {
+    public init(@ViewBuilder content: @escaping () -> Content) {
+        self.content = content
+    }
+    public var body: some View {
         VStack(spacing: 0) {
             content()
         }

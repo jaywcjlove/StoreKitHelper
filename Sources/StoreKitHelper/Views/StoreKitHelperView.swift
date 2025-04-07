@@ -31,7 +31,7 @@ public struct StoreKitHelperView: View {
     @State var restoringPurchase: Bool = false
     public init() {}
     public var body: some View {
-        ContentWrapper {
+        ProductsContentWrapper {
             VStack(spacing: 0) {
                 HeaderView()
                 VStack(alignment: .leading, spacing: 6) {
@@ -106,7 +106,7 @@ private struct ProductsListView: View {
                 }
                 buyingProductID = nil
                 if let transaction {
-                    await store.updatePurchaseTransactions(with: transaction)
+                    store.updatePurchaseTransactions(with: transaction)
                 } else {
                     try await store.updatePurchases()
                 }

@@ -30,7 +30,7 @@ public struct StoreKitHelperSelectionView: View {
         }
     }
     public var body: some View {
-        ContentWrapper {
+        ProductsContentWrapper {
             VStack(spacing: 0) {
                 HeaderView(title: title)
                 Divider()
@@ -163,7 +163,7 @@ struct PurchaseButtonView: View {
                 }
                 buyingProductID = nil
                 if let transaction {
-                    await store.updatePurchaseTransactions(with: transaction)
+                    store.updatePurchaseTransactions(with: transaction)
                 } else {
                     try await store.updatePurchases()
                 }
