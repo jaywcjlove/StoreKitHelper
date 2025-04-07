@@ -35,12 +35,14 @@ public struct ProductsUnavailableView: View {
         .fixedSize(horizontal: false, vertical: true)
     }
     func restartApp() {
+#if os(macOS)
         let url = URL(fileURLWithPath: Bundle.main.resourcePath!)
         let path = url.deletingLastPathComponent().deletingLastPathComponent().absoluteString
         let task = Process()
         task.launchPath = "/usr/bin/open"
         task.arguments = [path]
         task.launch()
+#endif
         exit(0)
     }
     @ViewBuilder private func ErrorMessage(for error: StoreKitError) -> some View {
