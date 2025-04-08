@@ -165,6 +165,7 @@ private struct ProductsListLabelView: View {
                 }
                 .font(.system(size: 12))
                 .contentShape(Rectangle())
+                .foregroundStyle(hovering == true ? Color.white : Color.accentColor)
             })
             .tint(unit == .none ? .blue : .green)
             .buttonStyle(CostomPayButtonStyle(isHovered: bind, hasPurchased: hasPurchased))

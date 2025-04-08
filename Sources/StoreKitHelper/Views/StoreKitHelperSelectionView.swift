@@ -223,6 +223,7 @@ struct ProductListLabelView: View {
                         Text("\(displayPrice)").font(.system(size: 12))
                     }
                 }
+                .foregroundStyle(hovering == true ? Color.white : Color.accentColor)
             }
             .frame(alignment: .leading)
             .disabled(hasPurchased)
