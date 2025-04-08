@@ -45,7 +45,8 @@ struct PurchaseContent: View {
             .onPopupDismiss {
                 store.isShowingPurchasePopup = false
             }
-            // Sets the content area displayed in the purchase interface (can include feature descriptions, version comparisons, etc.)
+            // Sets the content area displayed in the purchase interface 
+            // (can include feature descriptions, version comparisons, etc.)
             .pricingContent {
                 AnyView(PricingContent())
             }
