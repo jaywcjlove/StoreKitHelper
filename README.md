@@ -7,7 +7,7 @@ A lightweight StoreKit2 wrapper designed specifically for SwiftUI, making it eas
 
 ## Documentation
 
-Please refer to the detailed StoreKitHelper [documentation](https://github.com/jaywcjlove/devtutor) in [DevTutor](https://github.com/jaywcjlove/devtutor), which includes comprehensive examples.
+Please refer to the detailed `StoreKitHelper` [documentation](https://github.com/jaywcjlove/devtutor) in [DevTutor](https://github.com/jaywcjlove/devtutor), which includes multiple quick start examples, custom payment interface examples, and API references, providing comprehensive examples and guidance.
 
 ## Usage
 
