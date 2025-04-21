@@ -12,12 +12,13 @@ import StoreKit
 public struct StoreKitHelperSelectionView: View {
     @EnvironmentObject var store: StoreContext
     @Environment(\.pricingContent) private var pricingContent
+    @ObservedObject var viewModel = ProductsListViewModel()
     /// 正在`购买`中
     @State var buyingProductID: String? = nil
     /// 选中的产品ID
     @State var selectedProductID: String? = nil
     /// `产品`正在加载中...
-    @State var loadingProducts: ProductsLadingStaus = .preparing
+    @State var loadingProducts: ProductsLoadingStatus = .preparing
     /// 恢复购买中....
     @State var restoringPurchase: Bool = false
     var title: String? = nil
@@ -44,6 +45,12 @@ public struct StoreKitHelperSelectionView: View {
                 }
                 ProductsLoadList(loading: $loadingProducts) {
                     ProductsListView(selectedProductID: $selectedProductID, buyingProductID: $buyingProductID)
+                        .filteredProducts() { productID, product in
+                            if let filteredProducts = viewModel.filteredProducts {
+                                return filteredProducts(productID, product)
+                            }
+                            return true
+                        }
                         .disabled(restoringPurchase)
                 }
                 Divider()
@@ -69,11 +76,26 @@ public struct StoreKitHelperSelectionView: View {
             }
         }
     }
+    /**
+     Filter the product list to display products based on product IDs
+     
+    ```swift
+    StoreKitHelperSelectionView()
+        .filteredProducts() { productID, product in
+            return true
+        }
+    ```
+     */
+    public func filteredProducts(_ filtered: ((String, Product) -> Bool)?) -> StoreKitHelperSelectionView {
+        viewModel.filteredProducts = filtered
+        return self
+    }
 }
 
 // MARK: - 产品列表
 fileprivate struct ProductsListView: View {
     @EnvironmentObject var store: StoreContext
+    @ObservedObject var viewModel = ProductsListViewModel()
     @Binding var selectedProductID: ProductID?
     @Binding var buyingProductID: String?
     var defaultSelectedProductId: String? = nil
@@ -83,17 +105,34 @@ fileprivate struct ProductsListView: View {
                 let hasPurchased = store.isProductPurchased(product)
                 let unit = product.subscription?.subscriptionPeriod.unit
                 let isBuying = buyingProductID == product.id
-                ProductListLabelView(
-                    selectedProductId: $selectedProductID,
-                    productId: product.id,
-                    displayPrice: product.displayPrice,
-                    displayName: product.displayName,
-                    description: product.description,
-                    hasPurchased: hasPurchased,
-                    isBuying: isBuying,
-                    unit: unit
-                )
-                .disabled(buyingProductID != nil || isDisabled(product: product))
+                if let filteredProducts = viewModel.filteredProducts {
+                    let shouldDisplay = filteredProducts(product.id, product)
+                    if shouldDisplay == true {
+                        ProductListLabelView(
+                            selectedProductId: $selectedProductID,
+                            productId: product.id,
+                            displayPrice: product.displayPrice,
+                            displayName: product.displayName,
+                            description: product.description,
+                            hasPurchased: hasPurchased,
+                            isBuying: isBuying,
+                            unit: unit
+                        )
+                        .disabled(buyingProductID != nil || isDisabled(product: product))
+                    }
+                } else {
+                    ProductListLabelView(
+                        selectedProductId: $selectedProductID,
+                        productId: product.id,
+                        displayPrice: product.displayPrice,
+                        displayName: product.displayName,
+                        description: product.description,
+                        hasPurchased: hasPurchased,
+                        isBuying: isBuying,
+                        unit: unit
+                    )
+                    .disabled(buyingProductID != nil || isDisabled(product: product))
+                }
             }
         }
         .onAppear() {
@@ -125,6 +164,11 @@ fileprivate struct ProductsListView: View {
         }
         return false
     }
+    
+    public func filteredProducts(_ filtered: ((String, Product) -> Bool)?) -> ProductsListView {
+        viewModel.filteredProducts = filtered
+        return self
+    }
 }
 
 // MARK: - 点击购买按钮
@@ -135,7 +179,7 @@ struct PurchaseButtonView: View {
     @EnvironmentObject var store: StoreContext
     @Binding var selectedProductID: ProductID?
     @Binding var buyingProductID: String?
-    @Binding var loading: ProductsLadingStaus
+    @Binding var loading: ProductsLoadingStatus
     var body: some View {
         Button(action: {
             guard let product = store.products.first(where: { $0.id == selectedProductID }) else {

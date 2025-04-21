@@ -8,14 +8,15 @@
 import SwiftUI
 import StoreKit
 
-public enum ProductsLadingStaus {
-    /// 加载中
+
+public enum ProductsLoadingStatus {
+    /// Loading
     case loading
-    /// 准备加载
+    /// Preparing to load
     case preparing
-    /// 完成加载
+    /// Completed loading
     case complete
-    /// 不可用
+    /// Unavailable
     case unavailable
 }
 
@@ -23,10 +24,11 @@ public enum ProductsLadingStaus {
 public struct StoreKitHelperView: View {
     @Environment(\.pricingContent) private var pricingContent
     @EnvironmentObject var store: StoreContext
+    @ObservedObject var viewModel = ProductsListViewModel()
     /// 正在`购买`中
     @State var buyingProductID: String? = nil
     /// `产品`正在加载中...
-    @State var loadingProducts: ProductsLadingStaus = .preparing
+    @State var loadingProducts: ProductsLoadingStatus = .preparing
     /// 恢复购买中....
     @State var restoringPurchase: Bool = false
     public init() {}
@@ -42,6 +44,13 @@ public struct StoreKitHelperView: View {
                 Divider()
                 ProductsLoadList(loading: $loadingProducts) {
                     ProductsListView(buyingProductID: $buyingProductID, loading: $loadingProducts)
+                        .filteredProducts() { productID, product in
+                            if let filteredProducts = viewModel.filteredProducts {
+                                return filteredProducts(productID, product)
+                            }
+                            return true
+                        }
+                        .disabled(restoringPurchase)
                 }
                 if loadingProducts == .complete || loadingProducts == .loading {
                     Divider()
@@ -65,34 +74,72 @@ public struct StoreKitHelperView: View {
             }
         }
     }
+    /**
+     Filter the product list to display products based on product IDs
+     
+    ```swift
+    StoreKitHelperView()
+        .filteredProducts() { productID, product in
+            return true
+        }
+    ```
+     */
+    public func filteredProducts(_ filtered: ((String, Product) -> Bool)?) -> StoreKitHelperView {
+        viewModel.filteredProducts = filtered
+        return self
+    }
 }
 
-// MARK: - 产品列表
+class ProductsListViewModel: ObservableObject {
+    @Published var filteredProducts: ((String, Product) -> Bool)?
+}
+
+// MARK: - Products List
 private struct ProductsListView: View {
     @Environment(\.locale) var locale
     @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
+    @ObservedObject var viewModel = ProductsListViewModel()
     @Binding var buyingProductID: String?
-    @Binding var loading: ProductsLadingStaus
+    @Binding var loading: ProductsLoadingStatus
     @State var hovering: Bool = false
     var body: some View {
         ForEach(store.products) { product in
             let unit = product.subscription?.subscriptionPeriod.unit
             let isBuying = buyingProductID == product.id
             let hasPurchased = store.isProductPurchased(product)
-            ProductsListLabelView(
-                isBuying: .constant(isBuying),
-                productId: product.id,
-                unit: unit,
-                displayPrice: product.displayPrice,
-                displayName: product.displayName,
-                description: product.description,
-                hasPurchased: hasPurchased
-            ) {
-                purchase(product: product)
+            if let filteredProducts = viewModel.filteredProducts {
+                let shouldDisplay = filteredProducts(product.id, product)
+                if shouldDisplay == true {
+                    ProductsListLabelView(
+                        isBuying: .constant(isBuying),
+                        productId: product.id,
+                        unit: unit,
+                        displayPrice: product.displayPrice,
+                        displayName: product.displayName,
+                        description: product.description,
+                        hasPurchased: hasPurchased
+                    ) {
+                        purchase(product: product)
+                    }
+                    .id(product.id)
+                    .disabled(buyingProductID != nil)
+                }
+            } else {
+                ProductsListLabelView(
+                    isBuying: .constant(isBuying),
+                    productId: product.id,
+                    unit: unit,
+                    displayPrice: product.displayPrice,
+                    displayName: product.displayName,
+                    description: product.description,
+                    hasPurchased: hasPurchased
+                ) {
+                    purchase(product: product)
+                }
+                .id(product.id)
+                .disabled(buyingProductID != nil)
             }
-            .id(product.id)
-            .disabled(buyingProductID != nil)
         }
     }
     func purchase(product: Product) {
@@ -118,9 +165,14 @@ private struct ProductsListView: View {
             }
         }
     }
+    
+    public func filteredProducts(_ filtered: ((String, Product) -> Bool)?) -> ProductsListView {
+        viewModel.filteredProducts = filtered
+        return self
+    }
 }
 
-// MARK: - 产品列表 - item
+// MARK: - Products List - item
 private struct ProductsListLabelView: View {
     @EnvironmentObject var store: StoreContext
     @State var hovering: Bool = false

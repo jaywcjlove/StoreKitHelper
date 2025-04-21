@@ -116,3 +116,23 @@ var body: some View {
     }
 }
 ```
+
+### filteredProducts
+
+Filter the product list to display products based on product IDs
+    
+```swift
+StoreKitHelperView()
+    .filteredProducts() { productID, product in
+        return true
+    }
+
+StoreKitHelperSelectionView()
+    .filteredProducts() { productID, product in
+        return true
+    }
+```
+
+## License
+
+Licensed under the MIT License.
