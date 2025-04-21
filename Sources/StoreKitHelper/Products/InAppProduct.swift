@@ -5,13 +5,13 @@
 //  Created by 王楚江 on 2025/3/8.
 //
 
-public protocol InAppProduct: Identifiable {
+public protocol InAppProduct: CaseIterable, Identifiable where ID == ProductID {
     var id: ProductID { get }
 }
 
 /**
  ```swift
- enum AppProduct: String, CaseIterable, InAppProduct {
+ enum AppProduct: String, InAppProduct {
      case lifetime = "xxx.lifetime"
      case annually = "xxx.annually"
      case monthly = "xxx.monthly"

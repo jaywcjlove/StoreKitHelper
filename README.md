@@ -42,7 +42,7 @@ At the entry point of the SwiftUI application, create and inject a `StoreContext
 ```swift
 import StoreKitHelper
 
-enum AppProduct: String, CaseIterable, InAppProduct {
+enum AppProduct: String, InAppProduct {
     case lifetime = "focuscursor.lifetime"
     case monthly = "focuscursor.monthly"
     var id: String { rawValue }
@@ -119,11 +119,27 @@ var body: some View {
 
 ### filteredProducts
 
-Filter the product list to display products based on product IDs
+This is a simple migration solution: the product list is filtered by product ID, retaining the old product IDs so existing users don’t need to repurchase and can restore their purchases, while new users purchase through the new product IDs, achieving a smooth transition.
     
 ```swift
+enum AppProduct: String, InAppProduct {
+    /// old
+    case sponsor = "focuscursor.Sponsor"
+    case generous = "focuscursor.Generous"
+    /// new
+    case monthly = "focuscursor.monthly"
+    case lifetime = "focuscursor.lifetime"
+    var id: String { rawValue }
+}
+
 StoreKitHelperView()
     .filteredProducts() { productID, product in
+        if productID == AppProduct.sponsor.rawValue {
+            return false
+        }
+        if productID == AppProduct.generous.rawValue {
+            return false
+        }
         return true
     }
 
