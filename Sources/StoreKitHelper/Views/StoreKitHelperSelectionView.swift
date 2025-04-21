@@ -144,7 +144,7 @@ struct PurchaseButtonView: View {
             purchase(product: product)
         }, label: {
             HStack {
-                if let buyingProductID {
+                if buyingProductID != nil {
                     ProgressView().controlSize(.small)
                 } else {
                     Image(systemName: "cart").font(.system(size: 12))
@@ -157,7 +157,7 @@ struct PurchaseButtonView: View {
         Task {
             buyingProductID = product.id
             do {
-                let (result, transaction) = try await store.purchase(product)
+                let (_, transaction) = try await store.purchase(product)
                 if let transaction {
                     await transaction.finish()
                 }

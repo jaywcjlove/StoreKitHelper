@@ -18,7 +18,7 @@ extension StoreContext {
         }
         var hasValidTransaction = false
         /// 返回一个包含当前有效的 已购买商品 的交易列表
-        let entitlements = await Transaction.currentEntitlements
+        let entitlements = Transaction.currentEntitlements
         for await result in entitlements {
             switch result {
             case let .verified(transaction):
@@ -26,8 +26,8 @@ extension StoreContext {
                     await self.updatePurchaseTransactions(with: transaction)
                     hasValidTransaction = true
                 }
-            case let .unverified(transaction, error):
-                print("Unverified transaction: \(error.localizedDescription ?? "Unknown error")")
+            case let .unverified(_, error):
+                print("Unverified transaction: \(error.localizedDescription)")
             }
         }
         return hasValidTransaction

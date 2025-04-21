@@ -45,9 +45,9 @@ public struct ProductsUnavailableView: View {
 #endif
         exit(0)
     }
-    @ViewBuilder private func ErrorMessage(for error: StoreKitError) -> some View {
+    private func ErrorMessage(for error: StoreKitError) -> some View {
         switch error {
-        case .networkError(let urlError):
+        case .networkError(_):
             return AnyView(
                 Text(.init("network_connection_check".localized(locale: locale)))
                     .foregroundStyle(Color.yellow).fontWeight(.thin)

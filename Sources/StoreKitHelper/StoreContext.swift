@@ -60,7 +60,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
         self.purchasedProductIds = persistedPurchasedProductIds
         transactionUpdateTask = updateTransactionsOnLaunch()
         Task {
-            await self.checkReceipt()
+            _ = await self.checkReceipt()
             try await syncStoreData()
         }
     }
@@ -83,7 +83,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
         let products = try await getProducts()
         /// 可能网络问题导致数据没有获取，清空本地历史购买记录
         if products.count > 0 {
-            await updateProducts(products)
+            updateProducts(products)
         }
         /// 更新购买信息
         try await updatePurchases()
@@ -92,7 +92,7 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     /// 更新购买信息
     func updatePurchases() async throws {
         let transactions = try await getValidProductTransations()
-        await updatePurchaseTransactions(transactions)
+        updatePurchaseTransactions(transactions)
     }
     // MARK: - 更新产品
     /// 更新产品

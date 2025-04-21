@@ -79,7 +79,6 @@ private struct ProductsListView: View {
         ForEach(store.products) { product in
             let unit = product.subscription?.subscriptionPeriod.unit
             let isBuying = buyingProductID == product.id
-            let isProductPurchased = store.isProductPurchased(product)
             let hasPurchased = store.isProductPurchased(product)
             ProductsListLabelView(
                 isBuying: .constant(isBuying),
@@ -100,7 +99,7 @@ private struct ProductsListView: View {
         Task {
             buyingProductID = product.id
             do {
-                let (result, transaction) = try await store.purchase(product)
+                let (_, transaction) = try await store.purchase(product)
                 if let transaction {
                     await transaction.finish()
                 }

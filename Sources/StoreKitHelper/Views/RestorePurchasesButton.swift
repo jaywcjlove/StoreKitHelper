@@ -19,7 +19,7 @@ struct RestorePurchasesButtonView: View {
             Task {
                 restoringPurchase = true
                 do {
-                    await try store.restorePurchases()
+                    try await store.restorePurchases()
                     restoringPurchase = false
                     if store.purchasedProductIds.count > 0 {
                         popupDismissHandle?()
