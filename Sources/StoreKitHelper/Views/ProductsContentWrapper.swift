@@ -14,25 +14,3 @@ struct ViewHeightKey: PreferenceKey {
         value = max(value, nextValue())
     }
 }
-
-public struct ProductsContentWrapper<Content: View>: View {
-    @State private var viewHeight: CGFloat = 0
-    var content: () -> Content
-    public init(@ViewBuilder content: @escaping () -> Content) {
-        self.content = content
-    }
-    public var body: some View {
-        VStack(spacing: 0) {
-            content()
-        }
-        .background(GeometryReader { geometry in
-            Color.clear.preference(key: ViewHeightKey.self, value: geometry.size.height)
-        })
-        .onPreferenceChange(ViewHeightKey.self) { newHeight in
-            DispatchQueue.main.async {
-                self.viewHeight = newHeight
-            }
-        }
-        .frame(minHeight: viewHeight)
-    }
-}

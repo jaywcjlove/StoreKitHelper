@@ -20,15 +20,19 @@ public struct ProductsLoadList<Content: View>: View {
         self.content = content
     }
     var content: () -> Content
+    
+    @State private var viewHeight: CGFloat? = nil
     public var body: some View {
-        VStack(spacing: 0) {
+        ZStack {
             if loading == .unavailable {
                 ProductsUnavailableView(error: $error)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(.background.opacity(0.73))
                     .padding(8)
-            } else if products.count > 0 {
-                content()
+            } else if store.products.count > 0 {
+                VStack(spacing: 0) {
+                    content()
+                }
             }
         }
         .overlay(content: {
@@ -40,7 +44,15 @@ public struct ProductsLoadList<Content: View>: View {
                 .background(.background.opacity(0.73))
             }
         })
-        .frame(minHeight: CGFloat(store.productIds.count) * 12)
+        .background(GeometryReader { geometry in
+            Color.clear.preference(key: ViewHeightKey.self, value: geometry.size.height)
+        })
+        .onPreferenceChange(ViewHeightKey.self) { newHeight in
+            DispatchQueue.main.async {
+                self.viewHeight = newHeight
+            }
+        }
+        .frame(minHeight: viewHeight)
         .onChange(of: products, initial: false, { old, val in
             if products.count > 0 {
                 let productIdSet = Set(store.productIds)
