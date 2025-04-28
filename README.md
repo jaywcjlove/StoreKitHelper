@@ -8,6 +8,7 @@ A lightweight StoreKit2 wrapper designed specifically for SwiftUI, making it eas
 ✦ My macOS/iOS application ✦
 
 <p style="display: inline-block">
+    <a target="_blank" href="https://wangchujiang.com/audioer/" title="Audioer for macOS"><img align="center" alt="Audioer" height="52" width="52" src="https://github.com/user-attachments/assets/7a836865-8c90-4119-87bc-19e06a76c957"></a>
     <a target="_blank" href="https://wangchujiang.com/file-sentinel/" title="FileSentinel for macOS"><img align="center" alt="FileSentinel" height="52" width="52" src="https://github.com/user-attachments/assets/28bce2cc-290e-45bf-9068-585ff6ecafe9"></a>
     <a target="_blank" href="https://wangchujiang.com/focus-cursor/" title="FocusCursor for macOS"><img align="center" alt="FocusCursor" height="52" width="52" src="https://github.com/user-attachments/assets/d543668a-737b-4853-a6bb-eaa269e69836"></a>
     <a target="_blank" href="https://wangchujiang.com/videoer/" title="Videoer for macOS"><img align="center" alt="Videoer" height="52" width="52" src="https://github.com/user-attachments/assets/10ffb0f1-0625-40d6-93f1-2c2496592595"></a>
