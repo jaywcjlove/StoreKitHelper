@@ -102,6 +102,7 @@ fileprivate struct ProductsListView: View {
             ForEach(store.products) { product in
                 let hasPurchased = store.isProductPurchased(product)
                 let unit = product.subscription?.subscriptionPeriod.unit
+                let period = product.subscription?.subscriptionPeriod
                 let isBuying = buyingProductID == product.id
                 if let filteredProducts = viewModel.filteredProducts {
                     let shouldDisplay = filteredProducts(product.id, product)
@@ -114,6 +115,7 @@ fileprivate struct ProductsListView: View {
                             description: product.description,
                             hasPurchased: hasPurchased,
                             isBuying: isBuying,
+                            period: period,
                             unit: unit
                         )
                         .disabled(buyingProductID != nil || isDisabled(product: product))
@@ -127,6 +129,7 @@ fileprivate struct ProductsListView: View {
                         description: product.description,
                         hasPurchased: hasPurchased,
                         isBuying: isBuying,
+                        period: period,
                         unit: unit
                     )
                     .disabled(buyingProductID != nil || isDisabled(product: product))
@@ -233,6 +236,8 @@ struct ProductListLabelView: View {
     var description: String
     var hasPurchased: Bool
     var isBuying: Bool
+    /// Subscription Period
+    var period: Product.SubscriptionPeriod?
     var unit: Product.SubscriptionPeriod.Unit?
     var body: some View {
         let individual = Binding(get: {
@@ -261,8 +266,11 @@ struct ProductListLabelView: View {
                     } else {
                         Image(systemName: "cart").font(.system(size: 10))
                     }
-                    if let localizedDescription = unit?.localizedDescription {
-                        Text("\(displayPrice)").font(.system(size: 12)) + Text(" / \(localizedDescription)").font(.system(size: 10))
+                    if let period = period {
+                        let periodString = "\(period.value) \(period.unit.localizedDescription)"
+                        Text("\(displayPrice) / ").font(.system(size: 12)) + Text("\(periodString)").font(.system(size: 10))
+                    } else if let localizedDescription = unit?.localizedDescription {
+                        Text("\(displayPrice) / ").font(.system(size: 12)) + Text("\(localizedDescription)").font(.system(size: 10))
                     } else {
                         Text("\(displayPrice)").font(.system(size: 12))
                     }
