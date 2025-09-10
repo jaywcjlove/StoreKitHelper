@@ -83,11 +83,19 @@ public extension StoreContext {
         let result: Transaction = try latest.verify()
         return result.isValid ? result : nil
     }
-    /// 监听事务更新
-    /// 这个函数由初始化器调用，用于获取交易更新并尝试验证它们。
+    /// Listen for transaction updates
+    /// This function is called by the initializer to get transaction updates and attempt to verify them.
     func updateTransactionsOnLaunch() -> Task<Void, Never> {
-        return Task.detached(priority: .background) {
+        return Task.detached(priority: .background) { [weak self] in
             for await result in Transaction.updates {
+                guard let self = self else { 
+                    // If self is deallocated, exit the loop
+                    break 
+                }
+                
+                // Check if task is cancelled
+                guard !Task.isCancelled else { break }
+                
                 do {
                     let transaction = try result.verify()
                     await self.updatePurchaseTransactions(with: transaction)

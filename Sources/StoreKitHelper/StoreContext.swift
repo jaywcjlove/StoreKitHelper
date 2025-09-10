@@ -37,10 +37,11 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
     @Published public internal(set) var purchasedProductIds: [String] = [] {
         willSet { persistedPurchasedProductIds = newValue }
     }
-    /// 购买交易，同时`更新`已购买的产品 ``StoreContext/purchasedProductIds`` ID
+    /// Purchase transactions, simultaneously updates purchased product IDs
     public var purchaseTransactions: [Transaction] = [] {
         didSet {
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
                 self.purchasedProductIds = self.purchaseTransactions.map { $0.productID }
             }
         }
@@ -54,14 +55,15 @@ public class StoreContext: ObservableObject, @unchecked Sendable {
         self.init(productIds: products.map { $0.id })
     }
     public init(productIds: [ProductID] = []) {
-        /// 产品 ID（持久化逻辑）
+        /// Product IDs (persistence logic)
         self.productIds = productIds.count > 0 ? productIds : persistedProductIds
-        /// `已购`产品 ID（持久化逻辑）
+        /// Purchased product IDs (persistence logic)
         self.purchasedProductIds = persistedPurchasedProductIds
         transactionUpdateTask = updateTransactionsOnLaunch()
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             _ = await self.checkReceipt()
-            try await syncStoreData()
+            try await self.syncStoreData()
         }
     }
     deinit {
