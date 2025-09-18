@@ -1,5 +1,5 @@
 <div markdown="1">
-  <sup>Using <a href="https://wangchujiang.com/#/app" target="_blank">my app</a> is also a way to <a href="https://wangchujiang.com/#/sponsor" target="_blank">support</a> me:</sup>
+  <sup>使用 <a href="https://wangchujiang.com/#/app" target="_blank">我的应用</a> 也是一种 <a href="https://wangchujiang.com/#/sponsor" target="_blank">支持</a> 我的方式：</sup>
   <br>
     <a target="_blank" href="https://apps.apple.com/app/Vidwall/6747587746" title="Vidwall for macOS"><img align="center" alt="Vidwall" height="52" width="52" src="https://github.com/user-attachments/assets/7b5df70a-ed91-4d4b-85be-f00e60a09ce9"></a>
     <a target="_blank" href="https://wangchujiang.com/mousio-hint/" title="Mousio Hint for macOS"><img align="center" alt="Mousio Hint" height="52" width="52" src="https://github.com/user-attachments/assets/3c0af128-0cef-44e5-a8db-4741dc5a6690"></a>
@@ -33,19 +33,19 @@
 StoreKit Helper
 ===
 
-![中文](./README.zh.md)
+![English](./README.zh.md)
 
-A lightweight StoreKit2 wrapper designed specifically for SwiftUI, making it easier to implement in-app purchases.
+专为 SwiftUI 设计的轻量级 StoreKit2 包装器，让应用内购买的实现更加简单。
 
 ![StoreKit Helper](https://github.com/user-attachments/assets/d0d27552-9d2d-4a09-8d8d-b96b3b3648a9)
 
-## Documentation
+## 文档
 
-Please refer to the detailed `StoreKitHelper` [documentation](https://github.com/jaywcjlove/devtutor) in [DevTutor](https://github.com/jaywcjlove/devtutor), which includes multiple quick start examples, custom payment interface examples, and API references, providing comprehensive examples and guidance.
+请参阅 [DevTutor](https://github.com/jaywcjlove/devtutor) 中详细的 `StoreKitHelper` [文档](https://github.com/jaywcjlove/devtutor)，其中包括多个快速入门示例、自定义支付界面示例和 API 参考，提供全面的示例和指导。
 
-## Usage
+## 使用方法
 
-At the entry point of the SwiftUI application, create and inject a `StoreContext` instance, which is responsible for loading the product list and tracking purchase status.
+在 SwiftUI 应用程序的入口点创建并注入一个 `StoreContext` 实例，它负责加载产品列表和跟踪购买状态。
 
 ```swift
 import StoreKitHelper
@@ -66,7 +66,7 @@ enum AppProduct: String, InAppProduct {
 }
 ```
 
-Use `StoreKitHelperView` to directly display an in-app purchase popup view and configure various parameters through a chained API.
+使用 `StoreKitHelperView` 直接显示应用内购买弹窗视图，并通过链式 API 配置各种参数。
 
 ```swift
 struct PurchaseContent: View {
@@ -75,26 +75,26 @@ struct PurchaseContent: View {
         StoreKitHelperView()
             .frame(maxWidth: 300)
             .frame(minWidth: 260)
-            // Triggered when the popup is dismissed (e.g., user clicks the close button)
+            // 弹窗被关闭时触发（例如用户点击关闭按钮）
             .onPopupDismiss {
                 store.isShowingPurchasePopup = false
             }
-            // Sets the content area displayed in the purchase interface 
-            // (can include feature descriptions, version comparisons, etc.)
+            // 设置在购买界面中显示的内容区域
+            // （可包含功能描述、版本对比等）
             .pricingContent {
                 AnyView(PricingContent())
             }
             .termsOfService {
-                // Action triggered when the [Terms of Service] button is clicked
+                // 点击【服务条款】按钮时触发的操作
             }
             .privacyPolicy {
-                // Action triggered when the [Privacy Policy] button is clicked
+                // 点击【隐私政策】按钮时触发的操作
             }
     }
 }
 ```
 
-Click to open the paid product list interface.
+点击打开付费产品列表界面。
 
 ```swift
 struct PurchaseButton: View {
@@ -103,7 +103,7 @@ struct PurchaseButton: View {
         if store.hasNotPurchased == true {
             PurchasePopupButton()
                 .sheet(isPresented: $store.isShowingPurchasePopup) {
-                    /// Popup with the paid product list
+                    /// 包含付费产品列表的弹窗
                     PurchaseContent()
                 }
         }
@@ -111,30 +111,30 @@ struct PurchaseButton: View {
 }
 ```
 
-You can use the `hasNotPurchased` property in `StoreContext` to check if the user has made a purchase, and then dynamically display different interface content. For example:
+您可以使用 `StoreContext` 中的 `hasNotPurchased` 属性来检查用户是否已购买，然后动态显示不同的界面内容。例如：
 
 ```swift
 @EnvironmentObject var store: StoreContext
 
 var body: some View {
     if store.hasNotPurchased == true {
-        // 🧾 User has not purchased - Show restricted content or prompt for purchase
+        // 🧾 用户未购买 - 显示受限内容或提示购买
     } else {
-        // ✅ User has purchased - Show full features
+        // ✅ 用户已购买 - 显示完整功能
     }
 }
 ```
 
 ### filteredProducts
 
-This is a simple migration solution: the product list is filtered by product ID, retaining the old product IDs so existing users don’t need to repurchase and can restore their purchases, while new users purchase through the new product IDs, achieving a smooth transition.
+这是一个简单的迁移解决方案：产品列表通过产品 ID 进行过滤，保留旧的产品 ID，这样现有用户不需要重新购买并可以恢复他们的购买，而新用户通过新的产品 ID 购买，实现平滑过渡。
     
 ```swift
 enum AppProduct: String, InAppProduct {
-    /// old
+    /// 旧版本
     case sponsor = "focuscursor.Sponsor"
     case generous = "focuscursor.Generous"
-    /// new
+    /// 新版本
     case monthly = "focuscursor.monthly"
     case lifetime = "focuscursor.lifetime"
     var id: String { rawValue }
@@ -157,6 +157,6 @@ StoreKitHelperSelectionView()
     }
 ```
 
-## License
+## 许可证
 
-Licensed under the MIT License.
+基于 MIT 许可证授权。
