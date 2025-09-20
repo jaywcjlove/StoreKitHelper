@@ -34,7 +34,7 @@
 StoreKit Helper
 ===
 
-![中文](./README.zh.md)
+[中文](./README.zh.md)
 
 A lightweight StoreKit2 wrapper designed specifically for SwiftUI, making it easier to implement in-app purchases.
 
