@@ -34,7 +34,7 @@
 StoreKit Helper
 ===
 
-![English](./README.zh.md)
+[English](./README.zh.md)
 
 专为 SwiftUI 设计的轻量级 StoreKit2 包装器，让应用内购买的实现更加简单。
 
