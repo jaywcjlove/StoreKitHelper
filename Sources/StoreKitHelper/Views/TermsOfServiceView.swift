@@ -24,15 +24,30 @@ struct TermsOfServiceView: View {
                         let text = termsOfServiceLabel.isEmpty == true ? "terms_of_service".localized(locale: locale) : termsOfServiceLabel
                         Text(text).frame(maxWidth: .infinity)
                     })
+                    .glassEffectButton()
                 }
                 if let action = privacyPolicyHandle {
                     Button(action: action, label: {
                         let text = privacyPolicyLabel.isEmpty == true ? "privacy_policy".localized(locale: locale) : privacyPolicyLabel
                         Text(text).frame(maxWidth: .infinity)
                     })
+                    .glassEffectButton()
                 }
             }
             .padding(.horizontal, 8)
         }
     }
+}
+
+#Preview {
+    VStack(spacing: 0) {
+        TermsOfServiceView()
+            .termsOfService() {
+            }
+            .privacyPolicy() {
+            }
+            .padding(.top, 0)
+            .padding(.bottom, 8)
+    }
+    .frame(width: 560)
 }
