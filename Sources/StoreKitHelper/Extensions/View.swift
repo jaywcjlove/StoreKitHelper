@@ -9,7 +9,7 @@ import SwiftUI
 
 internal extension View {
     @ViewBuilder func glassEffectButton() -> some View {
-        if #available(macOS 26.0, *) {
+        if #available(macOS 26.0, iOS 26, *) {
             self.buttonStyle(.plain)
                 .padding(.vertical, 5)
                 .glassEffect(.regular.interactive(), in: .capsule)
