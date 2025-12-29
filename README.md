@@ -110,7 +110,8 @@ struct PurchaseContent: View {
             .environment(\.locale, .init(identifier: locale.identifier))
             .environment(\.pricingContent, { AnyView(PricingContent()) })
             .environment(\.popupDismissHandle, {
-                // Triggered when the popup is dismissed (e.g., user clicks the close button)
+                // Triggered when the popup is dismissed 
+                // (e.g., user clicks the close button)
                 store.isShowingPurchasePopup = false
             })
             .environment(\.termsOfServiceHandle, {
@@ -154,7 +155,8 @@ struct PurchaseContent: View {
             .environment(\.locale, .init(identifier: locale.identifier))
             .environment(\.pricingContent, { AnyView(PricingContent()) })
             .environment(\.popupDismissHandle, {
-                // Triggered when the popup is dismissed (e.g., user clicks the close button)
+                // Triggered when the popup is dismissed 
+                // (e.g., user clicks the close button)
                 store.isShowingPurchasePopup = false
             })
             .environment(\.termsOfServiceHandle, {
