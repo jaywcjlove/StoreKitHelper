@@ -20,3 +20,13 @@
 "purchase_failed" = "구매 실패";
 
 "unlock_premium" = "프리미엄 잠금 해제";
+
+/* StoreKit 오류 메시지 */
+"product_load_failed" = "제품 로드 실패: %@";
+"purchase_failed_with_error" = "구매 실패: %@";
+"restore_failed_with_error" = "구매 복원 실패: %@";
+"verification_failed" = "거래 검증 실패";
+"network_error" = "네트워크 오류: %@";
+"user_cancelled" = "사용자가 구매를 취소했습니다";
+"purchase_pending" = "구매가 승인 대기 중입니다";
+"unknown_error" = "알 수 없는 오류: %@";

@@ -1,9 +1,10 @@
 //
-//  Untitled.swift
+//  Notify.swift
 //  StoreKitHelper
 //
-//  Created by 王楚江 on 2025/3/5.
+//  Created by wong on 12/29/25.
 //
+
 
 #if os(macOS)
 import AppKit
@@ -11,8 +12,8 @@ import AppKit
 import UIKit
 #endif
 
-class Utils {
-    nonisolated(unsafe) static let shared = Utils()
+class NotifyAlert {
+    nonisolated(unsafe) static let shared = NotifyAlert()
     @MainActor static func alert(title: String, message: String) {
         #if os(macOS)
         let alert = NSAlert()

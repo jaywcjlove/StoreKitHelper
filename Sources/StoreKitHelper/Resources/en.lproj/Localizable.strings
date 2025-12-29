@@ -20,3 +20,13 @@
 "purchase_failed" = "Purchase Failed";
 
 "unlock_premium" = "Unlock Premium";
+
+/* StoreKit Error Messages */
+"product_load_failed" = "Failed to load products: %@";
+"purchase_failed_with_error" = "Purchase failed: %@";
+"restore_failed_with_error" = "Restore purchases failed: %@";
+"verification_failed" = "Transaction verification failed";
+"network_error" = "Network error: %@";
+"user_cancelled" = "User cancelled purchase";
+"purchase_pending" = "Purchase is pending approval";
+"unknown_error" = "Unknown error: %@";

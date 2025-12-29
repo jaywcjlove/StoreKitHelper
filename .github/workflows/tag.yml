@@ -1,0 +1,24 @@
+name: CI
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  tags:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Extract version from tag
+        id: extract_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: Create Tag
+        id: create_tag
+        uses: jaywcjlove/create-tag-action@main
+        with:
+          version: ${{ env.VERSION }}
+          release: true
+          body: |
+            ## Changes in version ${{ env.VERSION }}

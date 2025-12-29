@@ -20,3 +20,13 @@
 "purchase_failed" = "購入に失敗しました";
 
 "unlock_premium" = "プレミアムを解除";
+
+/* StoreKitエラーメッセージ */
+"product_load_failed" = "製品の読み込みに失敗しました: %@";
+"purchase_failed_with_error" = "購入に失敗しました: %@";
+"restore_failed_with_error" = "購入の復元に失敗しました: %@";
+"verification_failed" = "取引の検証に失敗しました";
+"network_error" = "ネットワークエラー: %@";
+"user_cancelled" = "ユーザーが購入をキャンセルしました";
+"purchase_pending" = "購入は承認待ちです";
+"unknown_error" = "不明なエラー: %@";

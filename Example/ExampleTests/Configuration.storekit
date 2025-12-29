@@ -1,0 +1,95 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "8F3F5875",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "84CFE130",
+      "localizations" : [
+        {
+          "description" : "Lifetime to unlock all features",
+          "displayName" : "All Access Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "test.lifetime",
+      "referenceName" : "Example - Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "DD979BE3",
+      "localizations" : [
+
+      ],
+      "name" : "Example Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "0.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "0C48BA22",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Subscribe monthly to unlock all features",
+              "displayName" : "All Access Monthly",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "按月订阅付费解锁所有功能",
+              "displayName" : "全功能包月",
+              "locale" : "zh_Hans"
+            }
+          ],
+          "productID" : "test.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Example - All Access Monthly",
+          "subscriptionGroupID" : "DD979BE3",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

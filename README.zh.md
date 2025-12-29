@@ -37,7 +37,7 @@
 StoreKit Helper
 ===
 
-[English](./README.zh.md)
+[English](./README.md)
 
 专为 SwiftUI 设计的轻量级 StoreKit2 包装器，让应用内购买的实现更加简单。
 
@@ -46,6 +46,14 @@ StoreKit Helper
 ## 文档
 
 请参阅 [DevTutor](https://github.com/jaywcjlove/devtutor) 中详细的 `StoreKitHelper` [文档](https://github.com/jaywcjlove/devtutor)，其中包括多个快速入门示例、自定义支付界面示例和 API 参考，提供全面的示例和指导。
+
+## 功能特性
+
+- 🚀 **SwiftUI 原生**: 专为 SwiftUI 设计，支持 `@ObservableObject` 和 `@EnvironmentObject`
+- 💡 **简洁 API**: 干净直观的应用内购买管理接口
+- 🔄 **自动更新**: 实时交易监控和状态更新
+- ✅ **类型安全**: 基于协议的产品定义，提供编译时安全性
+- 🧪 **可测试**: 完全可测试的架构，测试用例覆盖
 
 ## 使用方法
 
@@ -70,52 +78,7 @@ enum AppProduct: String, InAppProduct {
 }
 ```
 
-使用 `StoreKitHelperView` 直接显示应用内购买弹窗视图，并通过链式 API 配置各种参数。
-
-```swift
-struct PurchaseContent: View {
-    @EnvironmentObject var store: StoreContext
-    var body: some View {
-        StoreKitHelperView()
-            .frame(maxWidth: 300)
-            .frame(minWidth: 260)
-            // 弹窗被关闭时触发（例如用户点击关闭按钮）
-            .onPopupDismiss {
-                store.isShowingPurchasePopup = false
-            }
-            // 设置在购买界面中显示的内容区域
-            // （可包含功能描述、版本对比等）
-            .pricingContent {
-                AnyView(PricingContent())
-            }
-            .termsOfService {
-                // 点击【服务条款】按钮时触发的操作
-            }
-            .privacyPolicy {
-                // 点击【隐私政策】按钮时触发的操作
-            }
-    }
-}
-```
-
-点击打开付费产品列表界面。
-
-```swift
-struct PurchaseButton: View {
-    @EnvironmentObject var store: StoreContext
-    var body: some View {
-        if store.hasNotPurchased == true {
-            PurchasePopupButton()
-                .sheet(isPresented: $store.isShowingPurchasePopup) {
-                    /// 包含付费产品列表的弹窗
-                    PurchaseContent()
-                }
-        }
-    }
-}
-```
-
-您可以使用 `StoreContext` 中的 `hasNotPurchased` 属性来检查用户是否已购买，然后动态显示不同的界面内容。例如：
+您可以使用 `StoreContext` 中的 `hasNotPurchased` 或 `hasPurchased` 属性来检查用户是否已购买，然后动态显示不同的界面内容。例如：
 
 ```swift
 @EnvironmentObject var store: StoreContext
@@ -126,40 +89,112 @@ var body: some View {
     } else {
         // ✅ 用户已购买 - 显示完整功能
     }
+    if store.hasPurchased == true {
+        // ✅ 用户已购买 - 显示完整功能
+    } else {
+        // 🧾 用户未购买 - 显示受限内容或提示购买
+    }
 }
 ```
 
-### filteredProducts
+## StoreKitHelperView
 
-这是一个简单的迁移解决方案：产品列表通过产品 ID 进行过滤，保留旧的产品 ID，这样现有用户不需要重新购买并可以恢复他们的购买，而新用户通过新的产品 ID 购买，实现平滑过渡。
-    
+使用 `StoreKitHelperView` 直接显示应用内购买弹窗视图，并通过链式 API 配置各种参数。
+
 ```swift
-enum AppProduct: String, InAppProduct {
-    /// 旧版本
-    case sponsor = "focuscursor.Sponsor"
-    case generous = "focuscursor.Generous"
-    /// 新版本
-    case monthly = "focuscursor.monthly"
-    case lifetime = "focuscursor.lifetime"
-    var id: String { rawValue }
+struct PurchaseContent: View {
+    @EnvironmentObject var store: StoreContext
+    var body: some View {
+        let locale: Locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
+        StoreKitHelperView()
+            .environment(\.locale, .init(identifier: locale.identifier))
+            .environment(\.pricingContent, { AnyView(PricingContent()) })
+            .environment(\.popupDismissHandle, {
+                // 弹窗被关闭时触发（例如用户点击关闭按钮）
+                store.isShowingPurchasePopup = false
+            })
+            .environment(\.termsOfServiceHandle, {
+                // 点击【服务条款】按钮时触发的操作
+            })
+            .environment(\.privacyPolicyHandle, {
+                // 点击【隐私政策】按钮时触发的操作
+            })
+            .frame(maxWidth: 300)
+            .frame(minWidth: 260)
+    }
 }
-
-StoreKitHelperView()
-    .filteredProducts() { productID, product in
-        if productID == AppProduct.sponsor.rawValue {
-            return false
-        }
-        if productID == AppProduct.generous.rawValue {
-            return false
-        }
-        return true
-    }
-
-StoreKitHelperSelectionView()
-    .filteredProducts() { productID, product in
-        return true
-    }
 ```
+
+点击打开付费产品列表界面。
+
+```swift
+struct ContentView: View {
+    @EnvironmentObject var store: StoreContext
+    var body: some View {
+        if store.hasNotPurchased == true {
+            PurchasePopupButton()
+                .sheet(isPresented: $store.isShowingPurchasePopup) {
+                    PurchaseContent()
+                }
+        }
+    }
+}
+```
+
+## StoreKitHelperSelectionView
+
+跟 `StoreKitHelperView` 差不多，选择购买项进行支付。
+
+```swift
+struct PurchaseContent: View {
+    @EnvironmentObject var store: StoreContext
+    var body: some View {
+        let locale: Locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
+        StoreKitHelperSelectionView()
+            .environment(\.locale, .init(identifier: locale.identifier))
+            .environment(\.pricingContent, { AnyView(PricingContent()) })
+            .environment(\.popupDismissHandle, {
+                // 弹窗被关闭时触发（例如用户点击关闭按钮）
+                store.isShowingPurchasePopup = false
+            })
+            .environment(\.termsOfServiceHandle, {
+                // 点击【服务条款】按钮时触发的操作
+            })
+            .environment(\.privacyPolicyHandle, {
+                // 点击【隐私政策】按钮时触发的操作
+            })
+            .frame(maxWidth: 300)
+            .frame(minWidth: 260)
+    }
+}
+```
+## API 参考
+
+### InAppProduct 协议
+
+```swift
+protocol InAppProduct: CaseIterable {
+    var id: String { get }
+}
+```
+
+### StoreContext 属性
+
+- `products: [Product]` - 从 App Store 获取的可用产品列表
+- `purchasedProductIDs: Set<String>` - 已购买产品标识符的集合
+- `hasNotPurchased: Bool` - 用户是否未购买任何产品
+- `hasPurchased: Bool` - 用户是否已购买任何产品
+- `isLoading: Bool` - 产品是否正在加载中
+- `errorMessage: String?` - 当前错误信息（如有）
+
+### StoreContext 方法
+
+- `purchase(_ product: Product)` - 购买指定产品
+- `restorePurchases()` - 恢复之前的购买
+- `isPurchased(_ productID: ProductID) -> Bool` - 根据 ID 检查产品是否已购买
+- `isPurchased(_ product: InAppProduct) -> Bool` - 检查产品是否已购买
+- `product(for productID: ProductID) -> Product?` - 根据 ID 获取产品
+- `product(for product: InAppProduct) -> Product?` - 根据 InAppProduct 获取产品
 
 ## 许可证
 

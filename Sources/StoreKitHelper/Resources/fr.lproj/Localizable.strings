@@ -9,7 +9,7 @@
 "privacy_policy" = "Politique de confidentialité";
 
 "restore_purchases" = "Restaurer les achats";
-"restore_purchases_failed" = "Échec de la restauration des achats :";
+"restore_purchases_failed" = "Échec de la restauration des achats:";
 "no_purchase_available" = "Aucun achat à restaurer";
 
 "store_unavailable" = "Magasin indisponible";
@@ -20,3 +20,13 @@
 "purchase_failed" = "Échec de l'achat";
 
 "unlock_premium" = "Déverrouiller Premium";
+
+/* Messages d'erreur StoreKit */
+"product_load_failed" = "Échec du chargement des produits : %@";
+"purchase_failed_with_error" = "Échec de l'achat : %@";
+"restore_failed_with_error" = "Échec de la restauration des achats : %@";
+"verification_failed" = "Échec de la vérification de la transaction";
+"network_error" = "Erreur réseau : %@";
+"user_cancelled" = "L'utilisateur a annulé l'achat";
+"purchase_pending" = "L'achat est en attente d'approbation";
+"unknown_error" = "Erreur inconnue : %@";

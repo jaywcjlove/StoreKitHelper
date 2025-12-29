@@ -1,5 +1,5 @@
 <div markdown="1">
-  <sup>Using <a href="https://wangchujiang.com/#/app" target="_blank">my app</a> is also a way to <a href="https://wangchujiang.com/#/sponsor" target="_blank">support</a> me:</sup>
+  <sup>Using <a href="https://wangchujiang.com/#/app" target="_blank">my apps</a> is also a way to <a href="https://wangchujiang.com/#/sponsor" target="_blank">support</a> me:</sup>
   <br>
   <a target="_blank" href="https://apps.apple.com/app/Deskmark/6755948110" title="Deskmark for macOS"><img alt="Deskmark" height="52" width="52" src="https://wangchujiang.com/appicon/deskmark.png"></a>
   <a target="_blank" href="https://apps.apple.com/app/Keyzer/6500434773" title="Keyzer for macOS"><img alt="Keyzer" height="52" width="52" src="https://wangchujiang.com/appicon/keyzer.png"></a>
@@ -39,7 +39,7 @@ StoreKit Helper
 
 [中文](./README.zh.md)
 
-A lightweight StoreKit2 wrapper designed specifically for SwiftUI, making it easier to implement in-app purchases.
+A lightweight StoreKit2 wrapper designed specifically for SwiftUI, making in-app purchases implementation simpler and more intuitive.
 
 ![StoreKit Helper](https://github.com/user-attachments/assets/d0d27552-9d2d-4a09-8d8d-b96b3b3648a9)
 
@@ -47,9 +47,17 @@ A lightweight StoreKit2 wrapper designed specifically for SwiftUI, making it eas
 
 Please refer to the detailed `StoreKitHelper` [documentation](https://github.com/jaywcjlove/devtutor) in [DevTutor](https://github.com/jaywcjlove/devtutor), which includes multiple quick start examples, custom payment interface examples, and API references, providing comprehensive examples and guidance.
 
+## Features
+
+- 🚀 **SwiftUI Native**: Designed specifically for SwiftUI with `@ObservableObject` and `@EnvironmentObject` support
+- 💡 **Simple API**: Clean and intuitive interface for managing in-app purchases
+- 🔄 **Automatic Updates**: Real-time transaction monitoring and status updates
+- ✅ **Type Safe**: Protocol-based product definitions with compile-time safety
+- 🧪 **Testable**: Fully testable architecture with comprehensive test case coverage
+
 ## Usage
 
-At the entry point of the SwiftUI application, create and inject a `StoreContext` instance, which is responsible for loading the product list and tracking purchase status.
+Create and inject a `StoreContext` instance at your SwiftUI app's entry point, which is responsible for loading the product list and tracking purchase status.
 
 ```swift
 import StoreKitHelper
@@ -70,30 +78,49 @@ enum AppProduct: String, InAppProduct {
 }
 ```
 
-Use `StoreKitHelperView` to directly display an in-app purchase popup view and configure various parameters through a chained API.
+You can use the `hasNotPurchased` or `hasPurchased` properties in `StoreContext` to check if the user has made a purchase, then dynamically display different interface content. For example:
+
+```swift
+@EnvironmentObject var store: StoreContext
+
+var body: some View {
+    if store.hasNotPurchased == true {
+        // 🧾 User hasn't purchased - show limited content or purchase prompt
+    } else {
+        // ✅ User has purchased - show full functionality
+    }
+    if store.hasPurchased == true {
+        // ✅ User has purchased - show full functionality
+    } else {
+        // 🧾 User hasn't purchased - show limited content or purchase prompt
+    }
+}
+```
+
+## StoreKitHelperView
+
+Use `StoreKitHelperView` to directly display in-app purchase popup views and configure various parameters through a chainable API.
 
 ```swift
 struct PurchaseContent: View {
     @EnvironmentObject var store: StoreContext
     var body: some View {
+        let locale: Locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
         StoreKitHelperView()
+            .environment(\.locale, .init(identifier: locale.identifier))
+            .environment(\.pricingContent, { AnyView(PricingContent()) })
+            .environment(\.popupDismissHandle, {
+                // Triggered when the popup is dismissed (e.g., user clicks the close button)
+                store.isShowingPurchasePopup = false
+            })
+            .environment(\.termsOfServiceHandle, {
+                // Action triggered when the [Terms of Service] button is clicked
+            })
+            .environment(\.privacyPolicyHandle, {
+                // Action triggered when the [Privacy Policy] button is clicked
+            })
             .frame(maxWidth: 300)
             .frame(minWidth: 260)
-            // Triggered when the popup is dismissed (e.g., user clicks the close button)
-            .onPopupDismiss {
-                store.isShowingPurchasePopup = false
-            }
-            // Sets the content area displayed in the purchase interface 
-            // (can include feature descriptions, version comparisons, etc.)
-            .pricingContent {
-                AnyView(PricingContent())
-            }
-            .termsOfService {
-                // Action triggered when the [Terms of Service] button is clicked
-            }
-            .privacyPolicy {
-                // Action triggered when the [Privacy Policy] button is clicked
-            }
     }
 }
 ```
@@ -101,13 +128,12 @@ struct PurchaseContent: View {
 Click to open the paid product list interface.
 
 ```swift
-struct PurchaseButton: View {
+struct ContentView: View {
     @EnvironmentObject var store: StoreContext
     var body: some View {
         if store.hasNotPurchased == true {
             PurchasePopupButton()
                 .sheet(isPresented: $store.isShowingPurchasePopup) {
-                    /// Popup with the paid product list
                     PurchaseContent()
                 }
         }
@@ -115,51 +141,61 @@ struct PurchaseButton: View {
 }
 ```
 
-You can use the `hasNotPurchased` property in `StoreContext` to check if the user has made a purchase, and then dynamically display different interface content. For example:
+## StoreKitHelperSelectionView
+
+Similar to `StoreKitHelperView`, but for selecting purchase items to make payments.
 
 ```swift
-@EnvironmentObject var store: StoreContext
-
-var body: some View {
-    if store.hasNotPurchased == true {
-        // 🧾 User has not purchased - Show restricted content or prompt for purchase
-    } else {
-        // ✅ User has purchased - Show full features
+struct PurchaseContent: View {
+    @EnvironmentObject var store: StoreContext
+    var body: some View {
+        let locale: Locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
+        StoreKitHelperSelectionView()
+            .environment(\.locale, .init(identifier: locale.identifier))
+            .environment(\.pricingContent, { AnyView(PricingContent()) })
+            .environment(\.popupDismissHandle, {
+                // Triggered when the popup is dismissed (e.g., user clicks the close button)
+                store.isShowingPurchasePopup = false
+            })
+            .environment(\.termsOfServiceHandle, {
+                // Action triggered when the [Terms of Service] button is clicked
+            })
+            .environment(\.privacyPolicyHandle, {
+                // Action triggered when the [Privacy Policy] button is clicked
+            })
+            .frame(maxWidth: 300)
+            .frame(minWidth: 260)
     }
 }
 ```
 
-### filteredProducts
+## API Reference
 
-This is a simple migration solution: the product list is filtered by product ID, retaining the old product IDs so existing users don’t need to repurchase and can restore their purchases, while new users purchase through the new product IDs, achieving a smooth transition.
-    
+### InAppProduct Protocol
+
 ```swift
-enum AppProduct: String, InAppProduct {
-    /// old
-    case sponsor = "focuscursor.Sponsor"
-    case generous = "focuscursor.Generous"
-    /// new
-    case monthly = "focuscursor.monthly"
-    case lifetime = "focuscursor.lifetime"
-    var id: String { rawValue }
+protocol InAppProduct: CaseIterable {
+    var id: String { get }
 }
-
-StoreKitHelperView()
-    .filteredProducts() { productID, product in
-        if productID == AppProduct.sponsor.rawValue {
-            return false
-        }
-        if productID == AppProduct.generous.rawValue {
-            return false
-        }
-        return true
-    }
-
-StoreKitHelperSelectionView()
-    .filteredProducts() { productID, product in
-        return true
-    }
 ```
+
+### StoreContext Properties
+
+- `products: [Product]` - Available products from the App Store
+- `purchasedProductIDs: Set<String>` - Set of purchased product identifiers
+- `hasNotPurchased: Bool` - Whether the user hasn't purchased any products
+- `hasPurchased: Bool` - Whether the user has purchased any products
+- `isLoading: Bool` - Whether products are currently loading
+- `errorMessage: String?` - Current error message, if any
+
+### StoreContext Methods
+
+- `purchase(_ product: Product)` - Purchase a specific product
+- `restorePurchases()` - Restore previous purchases
+- `isPurchased(_ productID: ProductID) -> Bool` - Check if a product is purchased by ID
+- `isPurchased(_ product: InAppProduct) -> Bool` - Check if a product is purchased
+- `product(for productID: ProductID) -> Product?` - Get product by ID
+- `product(for product: InAppProduct) -> Product?` - Get product by InAppProduct
 
 ## License
 

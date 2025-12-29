@@ -20,3 +20,14 @@
 "purchase_failed" = "購買失敗";
 
 "unlock_premium" = "解鎖高級功能";
+
+/* StoreKit 錯誤訊息 */
+"product_load_failed" = "載入產品失敗: %@";
+"purchase_failed_with_error" = "購買失敗: %@";
+"restore_failed_with_error" = "恢復購買失敗: %@";
+"verification_failed" = "交易驗證失敗";
+"network_error" = "網路錯誤: %@";
+"user_cancelled" = "使用者取消購買";
+"purchase_pending" = "購買等待審核中";
+"unknown_error" = "未知錯誤: %@";
+

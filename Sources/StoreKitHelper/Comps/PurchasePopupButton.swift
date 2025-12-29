@@ -1,8 +1,8 @@
 //
-//  BuyButton.swift
+//  PurchasePopupButton.swift
 //  StoreKitHelper
 //
-//  Created by 王楚江 on 2025/3/4.
+//  Created by wong on 12/29/25.
 //
 
 import SwiftUI

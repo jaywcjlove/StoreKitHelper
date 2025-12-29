@@ -20,3 +20,13 @@
 "purchase_failed" = "购买失败";
 
 "unlock_premium" = "付费解锁";
+
+/* StoreKit 错误消息 */
+"product_load_failed" = "加载产品失败: %@";
+"purchase_failed_with_error" = "购买失败: %@";
+"restore_failed_with_error" = "恢复购买失败: %@";
+"verification_failed" = "交易验证失败";
+"network_error" = "网络错误: %@";
+"user_cancelled" = "用户取消购买";
+"purchase_pending" = "购买等待审批中";
+"unknown_error" = "未知错误: %@";

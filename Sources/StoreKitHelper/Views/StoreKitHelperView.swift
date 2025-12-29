@@ -2,68 +2,45 @@
 //  StoreKitHelperView.swift
 //  StoreKitHelper
 //
-//  Created by 王楚江 on 2025/3/4.
+//  Created by wong on 12/28/25.
 //
 
 import SwiftUI
 import StoreKit
 
-
-public enum ProductsLoadingStatus {
-    /// Loading
-    case loading
-    /// Preparing to load
-    case preparing
-    /// Completed loading
-    case complete
-    /// Unavailable
-    case unavailable
-}
-
 // MARK: - 默认付费界面
 public struct StoreKitHelperView: View {
-    @Environment(\.pricingContent) private var pricingContent
+    @Environment(\.locale) var locale
     @EnvironmentObject var store: StoreContext
-    @ObservedObject var viewModel = ProductsListViewModel()
-    /// 正在`购买`中
-    @State var buyingProductID: String? = nil
-    /// `产品`正在加载中...
-    @State var loadingProducts: ProductsLoadingStatus = .preparing
+    @Environment(\.pricingContent) private var pricingContent
     /// 恢复购买中....
     @State var restoringPurchase: Bool = false
+    /// 正在`购买`中
+    @State var buyingProductID: String? = nil
     public init() {}
     public var body: some View {
         VStack(spacing: 0) {
             HeaderView()
-            VStack(alignment: .leading, spacing: 6) {
-                pricingContent?()
-            }
-            .padding(.top, 12)
-            .padding(.bottom, 12)
-            Divider()
-            ProductsLoadList(loading: $loadingProducts) {
-                ProductsListView(buyingProductID: $buyingProductID, loading: $loadingProducts)
-                    .filteredProducts() { productID, product in
-                        if let filteredProducts = viewModel.filteredProducts {
-                            return filteredProducts(productID, product)
-                        }
-                        return true
-                    }
-                    .disabled(restoringPurchase)
-            }
-            if loadingProducts == .complete || loadingProducts == .loading {
-                Divider()
-                HStack {
-                    RestorePurchasesButtonView(restoringPurchase: $restoringPurchase).disabled(buyingProductID != nil)
+            if let pricingContent {
+                VStack(alignment: .leading, spacing: 6) {
+                    pricingContent()
                 }
-                .padding(.vertical, 10)
+                .padding(.top, 12)
+                .padding(.bottom, 12)
             }
-#if os(iOS)
-            Spacer()
-#endif
+            Divider()
+            ProductsLoadList(buyingProductID: $buyingProductID)
+                .padding(6)
+            Divider()
+            HStack {
+                RestorePurchasesButton(restoringPurchase: $restoringPurchase)
+            }
+            .padding(.vertical, 10)
+            .disabled(buyingProductID != nil || store.isLoading)
         }
         .frame(minWidth: 230)
         .frame(maxWidth: .infinity)
+        .environment(\.locale, locale)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
                 TermsOfServiceView()
@@ -72,117 +49,60 @@ public struct StoreKitHelperView: View {
             }
         }
     }
-    /**
-     Filter the product list to display products based on product IDs
-     
-    ```swift
-    StoreKitHelperView()
-        .filteredProducts() { productID, product in
-            return true
-        }
-    ```
-     */
-    public func filteredProducts(_ filtered: ((String, Product) -> Bool)?) -> StoreKitHelperView {
-        viewModel.filteredProducts = filtered
-        return self
-    }
 }
 
-class ProductsListViewModel: ObservableObject {
-    @Published var filteredProducts: ((String, Product) -> Bool)?
-}
 
-// MARK: - Products List
-private struct ProductsListView: View {
+struct ProductsLoadList: View {
     @Environment(\.locale) var locale
     @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
-    @ObservedObject var viewModel = ProductsListViewModel()
     @Binding var buyingProductID: String?
-    @Binding var loading: ProductsLoadingStatus
-    @State var hovering: Bool = false
     var body: some View {
-        VStack(spacing: 0) {
-            ForEach(store.products) { product in
+        ProductsLoad {
+            let products = store.productsSorted()
+            ForEach(products, id: \.id) { product in
                 let unit = product.subscription?.subscriptionPeriod.unit
                 let period = product.subscription?.subscriptionPeriod
+                let hasPurchased = store.isPurchased(product.id)
                 let isBuying = buyingProductID == product.id
-                let hasPurchased = store.isProductPurchased(product)
-                if let filteredProducts = viewModel.filteredProducts {
-                    let shouldDisplay = filteredProducts(product.id, product)
-                    if shouldDisplay == true {
-                        ProductsListLabelView(
-                            isBuying: .constant(isBuying),
-                            productId: product.id,
-                            unit: unit,
-                            period: period,
-                            displayPrice: product.displayPrice,
-                            displayName: product.displayName,
-                            description: product.description,
-                            hasPurchased: hasPurchased
-                        ) {
-                            purchase(product: product)
-                        }
-                        .id(product.id)
-                        .disabled(buyingProductID != nil)
-                    }
-                } else {
-                    ProductsListLabelView(
-                        isBuying: .constant(isBuying),
-                        productId: product.id,
-                        unit: unit,
-                        period: period,
-                        displayPrice: product.displayPrice,
-                        displayName: product.displayName,
-                        description: product.description,
-                        hasPurchased: hasPurchased
-                    ) {
-                        purchase(product: product)
-                    }
-                    .id(product.id)
-                    .disabled(buyingProductID != nil)
+                ProductsListLabelView(
+                    isBuying: isBuying,
+                    unit: unit,
+                    period: period,
+                    displayPrice: product.displayPrice,
+                    displayName: product.displayName,
+                    description: product.description,
+                    hasPurchased: hasPurchased,
+                ) {
+                    purchase(product: product)
                 }
+                .disabled(buyingProductID != nil)
             }
         }
     }
     func purchase(product: Product) {
+        let purchaseFailed = String.localizedString(key: "purchase_failed", locale: locale)
         Task {
             buyingProductID = product.id
             do {
-                let (_, transaction) = try await store.purchase(product)
-                if let transaction {
-                    await transaction.finish()
-                }
+                try await store.purchase(product)
                 buyingProductID = nil
-                if let transaction {
-                    store.updatePurchaseTransactions(with: transaction)
-                } else {
-                    try await store.updatePurchases()
-                }
-                if store.isProductPurchased(product) == true {
+                if store.isPurchased(product.id) == true {
                     popupDismissHandle?()
                 }
             } catch {
                 buyingProductID = nil
-                Utils.alert(title: "purchase_failed".localized(locale: locale), message: error.localizedDescription)
+                NotifyAlert.alert(title: purchaseFailed, message: error.localizedDescription)
             }
         }
-    }
-    
-    public func filteredProducts(_ filtered: ((String, Product) -> Bool)?) -> ProductsListView {
-        viewModel.filteredProducts = filtered
-        return self
     }
 }
 
 // MARK: - Products List - item
 private struct ProductsListLabelView: View {
-    @EnvironmentObject var store: StoreContext
     @State var hovering: Bool = false
-    @Binding var isBuying: Bool
-    var productId: ProductID
+    var isBuying: Bool
     var unit: Product.SubscriptionPeriod.Unit?
-    /// Subscription Period
     var period: Product.SubscriptionPeriod?
     var displayPrice: String
     var displayName: String
@@ -199,10 +119,9 @@ private struct ProductsListLabelView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
-            let bind = Binding(get: { isBuying || hovering }, set: { _ in })
             Button(action: {
                 purchase()
-            }, label: {
+            }) {
                 HStack(spacing: 2) {
                     if isBuying == true {
                         ProgressView().controlSize(.mini)
@@ -224,11 +143,11 @@ private struct ProductsListLabelView: View {
                 }
                 .font(.system(size: 12))
                 .contentShape(Rectangle())
-                .foregroundStyle(hovering == true ? Color.white : Color.accentColor)
-            })
+                .foregroundStyle(hovering == true ? Color.secondary : Color.primary)
+            }
             .tint(unit == .none ? .blue : .green)
-            .buttonStyle(CostomPayButtonStyle(isHovered: bind, hasPurchased: hasPurchased))
-            .disabled(hasPurchased)
+            .buttonStyle(CostomPayButtonStyle(isHovered: hovering, hasPurchased: hasPurchased))
+            .disabled(hasPurchased || isBuying)
 #if os(macOS)
             .onHover { isHovered in
                 if isHovered, hasPurchased {
@@ -257,8 +176,9 @@ private struct ProductsListLabelView: View {
     }
 }
 
+
 struct CostomPayButtonStyle: ButtonStyle {
-    @Binding var isHovered: Bool
+    var isHovered: Bool
     var hasPurchased: Bool = false
     var normalColor: Color = .secondary.opacity(0.25)
     var hoverColor: Color = Color.accentColor
@@ -267,7 +187,6 @@ struct CostomPayButtonStyle: ButtonStyle {
             .foregroundColor(.secondary)
             .padding(3)
             .padding(.horizontal, 3)
-            .foregroundStyle(isHovered ? Color.primary : Color.secondary)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(isHovered || hasPurchased ? hoverColor.opacity(configuration.isPressed ? 1 : 0.75) : normalColor)
@@ -332,17 +251,3 @@ private struct HeaderView: View {
         }
     }
 }
-
-#if os(iOS)
-extension Bundle {
-    public var icon: UIImage? {
-        if let icons = infoDictionary?["CFBundleIcons"] as? [String: Any],
-            let primaryIcon = icons["CFBundlePrimaryIcon"] as? [String: Any],
-            let iconFiles = primaryIcon["CFBundleIconFiles"] as? [String],
-            let lastIcon = iconFiles.last {
-            return UIImage(named: lastIcon)
-        }
-        return nil
-    }
-}
-#endif

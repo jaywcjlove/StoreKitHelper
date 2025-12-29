@@ -11,12 +11,22 @@
 "restore_purchases" = "Käufe wiederherstellen";
 "restore_purchases_failed" = "Wiederherstellung der Käufe fehlgeschlagen:";
 "no_purchase_available" = "Keine wiederherstellbaren Käufe verfügbar";
-"network_connection_check" = "Überprüfen Sie die Netzwerkverbindung. Wenn diese normal ist, aber der Store immer noch nicht verfügbar ist, versuchen Sie, die App [neu zu starten](restartapp).";
 
 "store_unavailable" = "Store nicht verfügbar";
 "no_in_app_purchases" = "Aktuell sind keine In-App-Käufe im Store verfügbar.";
+"network_connection_check" = "Überprüfen Sie die Netzwerkverbindung. Wenn diese normal ist, aber der Store immer noch nicht verfügbar ist, versuchen Sie, die App [neu zu starten](restartapp).";
 
 "purchase" = "Kaufen";
 "purchase_failed" = "Kauf fehlgeschlagen";
 
 "unlock_premium" = "Premium freischalten";
+
+/* StoreKit Error Messages */
+"product_load_failed" = "Produkte konnten nicht geladen werden: %@";
+"purchase_failed_with_error" = "Kauf fehlgeschlagen: %@";
+"restore_failed_with_error" = "Wiederherstellung der Käufe fehlgeschlagen: %@";
+"verification_failed" = "Transaktionsverifizierung fehlgeschlagen";
+"network_error" = "Netzwerkfehler: %@";
+"user_cancelled" = "Benutzer hat den Kauf abgebrochen";
+"purchase_pending" = "Kauf wartet auf Genehmigung";
+"unknown_error" = "Unbekannter Fehler: %@";
