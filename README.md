@@ -53,7 +53,7 @@ Please refer to the detailed `StoreKitHelper` [documentation](https://github.com
 - 💡 **Simple API**: Clean and intuitive interface for managing in-app purchases
 - 🔄 **Automatic Updates**: Real-time transaction monitoring and status updates
 - ✅ **Type Safe**: Protocol-based product definitions with compile-time safety
-- 🧪 **Testable**: Fully testable architecture with comprehensive test case coverage
+- 🧪 **Testable**: Fully testable architecture with comprehensive test case coverage [ExampleTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Example/ExampleTests/ExampleTests.swift)/[StoreKitHelperTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Tests/StoreKitHelperTests/StoreKitHelperTests.swift)
 
 ## Usage
 

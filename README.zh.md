@@ -53,7 +53,7 @@ StoreKit Helper
 - 💡 **简洁 API**: 干净直观的应用内购买管理接口
 - 🔄 **自动更新**: 实时交易监控和状态更新
 - ✅ **类型安全**: 基于协议的产品定义，提供编译时安全性
-- 🧪 **可测试**: 完全可测试的架构，测试用例覆盖
+- 🧪 **可测试**: 完全可测试的架构，测试用例覆盖 [ExampleTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Example/ExampleTests/ExampleTests.swift)/[StoreKitHelperTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Tests/StoreKitHelperTests/StoreKitHelperTests.swift)
 
 ## 使用方法
 
