@@ -84,15 +84,10 @@ struct ProductsLoadList: View {
         let purchaseFailed = String.localizedString(key: "purchase_failed", locale: locale)
         Task {
             buyingProductID = product.id
-            do {
-                try await store.purchase(product)
-                buyingProductID = nil
-                if store.isPurchased(product.id) == true {
-                    popupDismissHandle?()
-                }
-            } catch {
-                buyingProductID = nil
-                NotifyAlert.alert(title: purchaseFailed, message: error.localizedDescription)
+            await store.purchase(product)
+            buyingProductID = nil
+            if store.isPurchased(product.id) == true {
+                popupDismissHandle?()
             }
         }
     }

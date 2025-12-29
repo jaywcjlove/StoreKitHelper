@@ -27,17 +27,12 @@ struct RestorePurchasesButton: View {
         Button(action: {
             Task {
                 restoringPurchase = true
-                do {
-                    try await store.restorePurchases()
-                    restoringPurchase = false
-                    if store.purchasedProductIDs.count > 0 {
-                        popupDismissHandle?()
-                    } else if showError(error: store.storeError) == true {
-                        NotifyAlert.alert(title: store.storeError?.description(locale: locale) ??  noPurchaseTitle, message: "")
-                    }
-                } catch {
-                    restoringPurchase = false
-                    NotifyAlert.alert(title: restoreFailedTitle, message: error.localizedDescription)
+                await store.restorePurchases()
+                restoringPurchase = false
+                if store.purchasedProductIDs.count > 0 {
+                    popupDismissHandle?()
+                } else if showError(error: store.storeError) == true {
+                    NotifyAlert.alert(title: store.storeError?.description(locale: locale) ??  noPurchaseTitle, message: "")
                 }
             }
         }, label: {

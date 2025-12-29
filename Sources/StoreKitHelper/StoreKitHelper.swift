@@ -110,8 +110,7 @@ public final class StoreContext: ObservableObject {
         
         do {
             // 同步 App Store 状态
-            let result = try await AppStore.sync()
-            print("AppStore.sync:", result)
+            try await AppStore.sync()
             // 更新购买状态
             await updatePurchasedProducts()
             
