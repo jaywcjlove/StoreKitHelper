@@ -194,8 +194,9 @@ private struct HeaderView: View {
                 Image(nsImage: NSImage(named: NSImage.applicationIconName)!)
                     .resizable()
                     .frame(width: 28, height: 28)
-            #else
-            if let appIcon = Bundle.main.icon {
+            #endif
+            #if canImport(UIKit)
+            if let appIcon = UIApplication.applicationIconImage() {
                 Image(uiImage: appIcon)
                     .resizable()
                     .scaledToFit() // 适应图标的比例
