@@ -37,9 +37,12 @@ public struct StoreKitHelperSelectionView: View {
                 }
                 .padding(.top, 12)
                 .padding(.bottom, 12)
+                #if os(iOS)
+                Spacer()
+                #endif
                 Divider()
             }
-        
+            
             ProductsLoad {
                 let products = store.productsSorted()
                 ForEach(products, id: \.id) { product in
@@ -77,11 +80,17 @@ public struct StoreKitHelperSelectionView: View {
                             if buyingProductID != nil {
                                 ProgressView().controlSize(.small)
                             } else {
-                                Image(systemName: "cart").font(.system(size: 12))
+                                Image(systemName: "cart")
+#if os(macOS)
+                                    .font(.system(size: 12))
+#endif
                             }
                             Text("purchase", bundle: .module)
                         }
                         .glassEffectButton(color: Color.accentColor)
+#if os(iOS)
+                        .font(.system(size: 16))
+#endif
                     })
                     .glassButtonStyle()
                     .tint(.accentColor)
@@ -139,6 +148,13 @@ private struct ProductsListLabelView: View {
         })
         
         Toggle(isOn: individual) {
+#if os(macOS)
+            let fontSize: CGFloat = 12
+            let fontSizeLast: CGFloat = 10
+#else
+            let fontSize: CGFloat = 16
+            let fontSizeLast: CGFloat = 12
+#endif
             HStack(alignment: .center) {
                 VStack(alignment: .leading) {
                     Text(displayName)
@@ -150,33 +166,41 @@ private struct ProductsListLabelView: View {
                 Spacer()
                 HStack(spacing: 2) {
                     if isBuying == true {
+#if os(macOS)
                         ProgressView().controlSize(.mini)
+#else
+                        ProgressView().tint(.primary)
+#endif
                     } else if hasPurchased == true {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 10))
+                            .font(.system(size: fontSizeLast))
                             .foregroundStyle(Color.green)
                     } else {
-                        Image(systemName: "cart").font(.system(size: 10))
+                        Image(systemName: "cart").font(.system(size: fontSizeLast))
                     }
                     if let period = period {
                         let periodString = "\(period.value) \(period.unit.localizedDescription)"
-                        Text("\(displayPrice) / ").font(.system(size: 12)) + Text("\(periodString)").font(.system(size: 10))
+                        Text("\(displayPrice) / ").font(.system(size: fontSize)) + Text("\(periodString)").font(.system(size: fontSizeLast))
                     } else if let localizedDescription = unit?.localizedDescription {
-                        Text("\(displayPrice) / ").font(.system(size: 12)) + Text("\(localizedDescription)").font(.system(size: 10))
+                        Text("\(displayPrice) / ").font(.system(size: fontSize)) + Text("\(localizedDescription)").font(.system(size: fontSizeLast))
                     } else {
-                        Text("\(displayPrice)").font(.system(size: 12))
+                        Text("\(displayPrice)").font(.system(size: fontSize))
                     }
                 }
             }
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 6)
+        #if os(macOS)
         .background(
             RoundedRectangle(cornerRadius: 5).fill(Color.secondary.opacity(hovering == true ? 0.23 : 0))
         )
         .onHover(perform: { hovering in
             self.hovering = hovering
         })
+        #else
+        .toggleStyle(.button)
+        #endif
     }
 }
 
@@ -201,14 +225,19 @@ private struct HeaderView: View {
                     .resizable()
                     .scaledToFit() // 适应图标的比例
                     .frame(width: 28, height: 28)
-                    .clipShape(RoundedRectangle(cornerRadius: 16)) // 圆角样式
+                    .clipShape(RoundedRectangle(cornerRadius: 8)) // 圆角样式
                     .shadow(radius: 5) // 可选：添加阴影
                     .padding(.bottom)
                     .padding(.top)
-                    .padding(.top)
             }
             #endif
-            Text(title != nil ? LocalizedStringKey(title ?? "")  : "unlock_premium", bundle: .module).font(.system(size: 14, weight: .bold))
+            Text(title != nil ? LocalizedStringKey(title ?? "")  : "unlock_premium", bundle: .module)
+#if os(macOS)
+                .font(.system(size: 14, weight: .bold))
+#endif
+#if canImport(UIKit)
+                .font(.system(size: 20, weight: .bold))
+#endif
             Spacer()
             if let popupDismissHandle {
                 Button(action: {
@@ -216,7 +245,12 @@ private struct HeaderView: View {
                 }, label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.secondary)
+#if os(macOS)
                         .font(.system(size: 18))
+#endif
+#if canImport(UIKit)
+                        .font(.system(size: 28))
+#endif
                 })
                 .buttonStyle(.plain)
             }

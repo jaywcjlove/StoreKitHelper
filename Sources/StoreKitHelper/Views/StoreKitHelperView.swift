@@ -28,6 +28,9 @@ public struct StoreKitHelperView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 12)
             }
+            #if os(iOS)
+            Spacer()
+            #endif
             Divider()
             ProductsLoadList(buyingProductID: $buyingProductID)
                 .padding(6)
@@ -116,28 +119,40 @@ private struct ProductsListLabelView: View {
             Button(action: {
                 purchase()
             }) {
+                #if os(macOS)
+                let fontSize: CGFloat = 12
+                let fontSizeLast: CGFloat = 10
+                #else
+                let fontSize: CGFloat = 16
+                let fontSizeLast: CGFloat = 12
+                #endif
                 HStack(spacing: 2) {
                     if isBuying == true {
+#if os(macOS)
                         ProgressView().controlSize(.mini)
+#else
+                        ProgressView().tint(.primary)
+#endif
                     } else if hasPurchased == true {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 10))
+                            .font(.system(size: fontSizeLast))
                             .foregroundStyle(Color.green)
                     } else {
-                        Image(systemName: "cart").font(.system(size: 10))
+                        Image(systemName: "cart").font(.system(size: fontSizeLast))
                     }
                     if let period = period {
                         let periodString = "\(period.value) \(period.unit.localizedDescription)"
-                        Text("\(displayPrice) / ").font(.system(size: 12)) + Text("\(periodString)").font(.system(size: 10))
+                        Text("\(displayPrice) / ").font(.system(size: fontSize)) + Text("\(periodString)").font(.system(size: fontSizeLast))
                     } else if let localizedDescription = unit?.localizedDescription {
-                        Text("\(displayPrice) / ").font(.system(size: 12)) + Text("\(localizedDescription)").font(.system(size: 10))
+                        Text("\(displayPrice) / ").font(.system(size: fontSize)) + Text("\(localizedDescription)").font(.system(size: fontSizeLast))
                     } else {
-                        Text("\(displayPrice)").font(.system(size: 12))
+                        Text("\(displayPrice)").font(.system(size: fontSize))
                     }
                 }
-                .font(.system(size: 12))
                 .contentShape(Rectangle())
+#if os(macOS)
                 .foregroundStyle(hovering == true ? Color.secondary : Color.primary)
+#endif
             }
             .tint(unit == .none ? .blue : .green)
             .buttonStyle(CostomPayButtonStyle(isHovered: hovering, hasPurchased: hasPurchased))
@@ -159,11 +174,13 @@ private struct ProductsListLabelView: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 8)
+#if os(macOS)
         .onHover { isHovered in
             withAnimation {
                 hovering = isHovered
             }
         }
+#endif
         .background(
             RoundedRectangle(cornerRadius: 5).fill(Color.secondary.opacity(hovering == true ? 0.23 : 0))
         )
@@ -178,12 +195,20 @@ struct CostomPayButtonStyle: ButtonStyle {
     var hoverColor: Color = Color.accentColor
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
+#if os(macOS)
             .foregroundColor(.secondary)
+#else
+            .foregroundColor(Color.primary)
+#endif
             .padding(3)
             .padding(.horizontal, 3)
             .background(
                 RoundedRectangle(cornerRadius: 12)
+                #if os(macOS)
                     .fill(isHovered || hasPurchased ? hoverColor.opacity(configuration.isPressed ? 1 : 0.75) : normalColor)
+                #else
+                    .fill(hasPurchased ? hoverColor : hoverColor)
+                #endif
             )
     }
 }
@@ -225,13 +250,18 @@ private struct HeaderView: View {
                     }, label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
+#if os(macOS)
                             .font(.system(size: 22))
+#endif
+#if canImport(UIKit)
+                            .font(.system(size: 32))
+#endif
                     })
         #if os(macOS)
                     .padding(.trailing, 10)
                     .padding(.top, 10)
         #else
-                    .padding(.top)
+                    .padding(.top, 26)
         #endif
                     .buttonStyle(.plain)
                 }
