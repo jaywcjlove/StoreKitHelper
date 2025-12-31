@@ -132,7 +132,7 @@ Click to open the paid product list interface.
 struct ContentView: View {
     @EnvironmentObject var store: StoreContext
     var body: some View {
-        if store.hasNotPurchased == true {
+        if store.hasNotPurchased == true, store.isLoading == false {
             PurchasePopupButton()
                 .sheet(isPresented: $store.isShowingPurchasePopup) {
                     PurchaseContent()
