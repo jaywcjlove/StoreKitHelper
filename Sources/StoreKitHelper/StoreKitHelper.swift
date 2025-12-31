@@ -61,11 +61,11 @@ public final class StoreContext: ObservableObject {
         self.productIDs = productIds
         // 开始监听交易更新
         startTransactionListener()
-        
+        isLoading = true
         // 加载产品和当前购买状态
         Task {
-            await loadProducts()
             await updatePurchasedProducts()
+            await loadProducts()
         }
     }
     
