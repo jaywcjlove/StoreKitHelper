@@ -14,13 +14,15 @@ public struct PurchasePopupButton<LabelView: View>: View {
         self.label = label
     }
     public var body: some View {
-        Button(action: {
-            store.isShowingPurchasePopup.toggle()
-        }) {
-            if let label {
-                label()
-            } else {
-                Image(systemName: "cart")
+        if store.hasNotPurchased == true {
+            Button(action: {
+                store.isShowingPurchasePopup.toggle()
+            }) {
+                if let label {
+                    label()
+                } else {
+                    Image(systemName: "cart")
+                }
             }
         }
     }
