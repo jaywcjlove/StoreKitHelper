@@ -14,7 +14,7 @@ public struct PurchasePopupButton<LabelView: View>: View {
         self.label = label
     }
     public var body: some View {
-        if store.hasNotPurchased == true {
+        if store.hasNotPurchased == true, store.isLoading == false {
             Button(action: {
                 store.isShowingPurchasePopup.toggle()
             }) {
