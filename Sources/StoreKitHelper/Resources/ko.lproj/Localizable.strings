@@ -9,7 +9,6 @@
 "privacy_policy" = "개인정보 처리방침";
 
 "restore_purchases" = "구매 복원";
-"restore_purchases_failed" = "구매 복원 실패:";
 "no_purchase_available" = "복원할 수 있는 구매 항목이 없습니다";
 
 "store_unavailable" = "상점 이용 불가";

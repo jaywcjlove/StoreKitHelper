@@ -9,7 +9,6 @@
 "privacy_policy" = "Datenschutzrichtlinie";
 
 "restore_purchases" = "Käufe wiederherstellen";
-"restore_purchases_failed" = "Wiederherstellung der Käufe fehlgeschlagen:";
 "no_purchase_available" = "Keine wiederherstellbaren Käufe verfügbar";
 
 "store_unavailable" = "Store nicht verfügbar";

@@ -23,7 +23,6 @@ struct RestorePurchasesButton: View {
     }
     var body: some View {
         let noPurchaseTitle = String.localizedString(key: "no_purchase_available", locale: locale)
-        let restoreFailedTitle = String.localizedString(key: "restore_purchases_failed", locale: locale)
         Button(action: {
             Task {
                 restoringPurchase = true
