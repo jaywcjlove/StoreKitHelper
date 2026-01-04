@@ -168,6 +168,7 @@ struct PurchaseContent: View {
     }
 }
 ```
+
 ## API 参考
 
 ### InAppProduct 协议

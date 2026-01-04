@@ -16,7 +16,7 @@ struct ViewHeightKey: PreferenceKey {
     }
 }
 
-struct ProductsLoad<Content: View>: View {
+public struct ProductsLoad<Content: View>: View {
     @Environment(\.locale) var locale
     @EnvironmentObject var store: StoreContext
     @State private var viewHeight: CGFloat? = nil
@@ -27,7 +27,10 @@ struct ProductsLoad<Content: View>: View {
         guard case .restoreFailed = error else { return true }
         return false
     }
-    var body: some View {
+    public init(@ViewBuilder content: @escaping () -> Content) {
+        self.content = content
+    }
+    public var body: some View {
         ZStack {
             let info = showError(error: store.storeError)
             if showError(error: store.storeError) == true {

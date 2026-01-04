@@ -45,6 +45,7 @@ struct PurchaseContent: View {
                 // Action triggered when the [Privacy Policy] button is clicked
                 print("Action triggered when the [Privacy Policy] button is clicked")
             })
+            .environment(\.privacyPolicyLabel, "Privacy Policy 1")
             .frame(maxWidth: 300)
             .frame(minWidth: 260)
     }
