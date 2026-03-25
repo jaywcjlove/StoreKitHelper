@@ -79,21 +79,48 @@ enum AppProduct: String, InAppProduct {
 }
 ```
 
-您可以使用 `StoreContext` 中的 `hasNotPurchased` 或 `hasPurchased` 属性来检查用户是否已购买，然后动态显示不同的界面内容。例如：
+`StoreContext` 现在提供三态购买状态。应用启动时，`purchaseStatus` 会先处于 `.loading`，直到 `Transaction.currentEntitlements` 首次同步完成。在这段时间里，`hasPurchased` 和 `hasNotPurchased` 都会返回 `false`，从而避免启动阶段被误判成“未购买”。
+
+```swift
+switch store.purchaseStatus {
+case .loading:
+    // 正在同步购买状态
+case .purchased:
+    // ✅ 用户存在有效购买
+case .notPurchased:
+    // 🧾 用户当前没有有效购买
+}
+```
+
+推荐写法：
 
 ```swift
 @EnvironmentObject var store: StoreContext
 
 var body: some View {
-    if store.hasNotPurchased == true {
-        // 🧾 用户未购买 - 显示受限内容或提示购买
-    } else {
+    switch store.purchaseStatus {
+    case .loading:
+        ProgressView("正在检查购买状态...")
+    case .purchased:
         // ✅ 用户已购买 - 显示完整功能
+    case .notPurchased:
+        // 🧾 用户未购买 - 显示受限内容或提示购买
     }
-    if store.hasPurchased == true {
-        // ✅ 用户已购买 - 显示完整功能
-    } else {
+}
+```
+
+兼容旧写法：
+
+```swift
+@EnvironmentObject var store: StoreContext
+
+var body: some View {
+    if store.hasResolvedPurchaseStatus == false {
+        ProgressView("正在检查购买状态...")
+    } else if store.hasNotPurchased == true {
         // 🧾 用户未购买 - 显示受限内容或提示购买
+    } else if store.hasPurchased == true {
+        // ✅ 用户已购买 - 显示完整功能
     }
 }
 ```
@@ -180,12 +207,24 @@ protocol InAppProduct: CaseIterable {
 }
 ```
 
+### PurchaseStatus
+
+```swift
+enum PurchaseStatus {
+    case loading
+    case purchased
+    case notPurchased
+}
+```
+
 ### StoreContext 属性
 
 - `products: [Product]` - 从 App Store 获取的可用产品列表
 - `purchasedProductIDs: Set<String>` - 已购买产品标识符的集合
-- `hasNotPurchased: Bool` - 用户是否未购买任何产品
-- `hasPurchased: Bool` - 用户是否已购买任何产品
+- `purchaseStatus: PurchaseStatus` - 当前购买状态：`.loading`、`.purchased`、`.notPurchased`
+- `hasResolvedPurchaseStatus: Bool` - 首次购买状态同步是否已完成
+- `hasNotPurchased: Bool` - 在购买状态完成解析后，用户是否未购买任何产品
+- `hasPurchased: Bool` - 在购买状态完成解析后，用户是否已购买任何产品
 - `isLoading: Bool` - 产品是否正在加载中
 - `errorMessage: String?` - 当前错误信息（如有）
 

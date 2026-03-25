@@ -79,21 +79,48 @@ enum AppProduct: String, InAppProduct {
 }
 ```
 
-You can use the `hasNotPurchased` or `hasPurchased` properties in `StoreContext` to check if the user has made a purchase, then dynamically display different interface content. For example:
+`StoreContext` exposes a tri-state purchase status. At app launch, `purchaseStatus` starts as `.loading` until `Transaction.currentEntitlements` finishes its first sync. During this stage, `hasPurchased` and `hasNotPurchased` both return `false`, so startup code will not accidentally treat the user as "not purchased".
+
+```swift
+switch store.purchaseStatus {
+case .loading:
+    // Purchase state is still being resolved
+case .purchased:
+    // ✅ User has active purchases
+case .notPurchased:
+    // 🧾 User has no active purchases
+}
+```
+
+Recommended usage:
 
 ```swift
 @EnvironmentObject var store: StoreContext
 
 var body: some View {
-    if store.hasNotPurchased == true {
-        // 🧾 User hasn't purchased - show limited content or purchase prompt
-    } else {
+    switch store.purchaseStatus {
+    case .loading:
+        ProgressView("Checking purchases...")
+    case .purchased:
         // ✅ User has purchased - show full functionality
+    case .notPurchased:
+        // 🧾 User hasn't purchased - show limited content or purchase prompt
     }
-    if store.hasPurchased == true {
-        // ✅ User has purchased - show full functionality
-    } else {
+}
+```
+
+Compatible legacy usage:
+
+```swift
+@EnvironmentObject var store: StoreContext
+
+var body: some View {
+    if store.hasResolvedPurchaseStatus == false {
+        ProgressView("Checking purchases...")
+    } else if store.hasNotPurchased == true {
         // 🧾 User hasn't purchased - show limited content or purchase prompt
+    } else if store.hasPurchased == true {
+        // ✅ User has purchased - show full functionality
     }
 }
 ```
@@ -182,12 +209,24 @@ protocol InAppProduct: CaseIterable {
 }
 ```
 
+### PurchaseStatus
+
+```swift
+enum PurchaseStatus {
+    case loading
+    case purchased
+    case notPurchased
+}
+```
+
 ### StoreContext Properties
 
 - `products: [Product]` - Available products from the App Store
 - `purchasedProductIDs: Set<String>` - Set of purchased product identifiers
-- `hasNotPurchased: Bool` - Whether the user hasn't purchased any products
-- `hasPurchased: Bool` - Whether the user has purchased any products
+- `purchaseStatus: PurchaseStatus` - Current purchase state: `.loading`, `.purchased`, or `.notPurchased`
+- `hasResolvedPurchaseStatus: Bool` - Whether the initial purchase state sync has completed
+- `hasNotPurchased: Bool` - Whether the user hasn't purchased any products after purchase state resolution
+- `hasPurchased: Bool` - Whether the user has purchased any products after purchase state resolution
 - `isLoading: Bool` - Whether products are currently loading
 - `errorMessage: String?` - Current error message, if any
 
