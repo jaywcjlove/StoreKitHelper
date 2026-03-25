@@ -32,7 +32,9 @@ func testStoreContextInitialization() async throws {
     await MainActor.run {
         #expect(store.products.isEmpty) // 初始时产品列表为空（需要从 App Store 加载）
         #expect(store.purchasedProductIDs.isEmpty)
-        #expect(store.hasNotPurchased == true)
+        #expect(store.purchaseStatus == .loading)
+        #expect(store.hasResolvedPurchaseStatus == false)
+        #expect(store.hasNotPurchased == false)
         #expect(store.hasPurchased == false)
     }
 }
@@ -43,13 +45,20 @@ func testPurchaseStatusMethods() async throws {
     
     await MainActor.run {
         // 测试购买状态检查方法
+        #expect(store.purchaseStatus == .loading)
         #expect(store.isPurchased("test.basic") == false)
         #expect(store.isPurchased(TestProduct.premium) == false)
+        store._setPurchaseStatusForTesting(.notPurchased)
+        #expect(store.purchaseStatus == .notPurchased)
+        #expect(store.hasResolvedPurchaseStatus == true)
+        #expect(store.hasNotPurchased == true)
+        #expect(store.hasPurchased == false)
         // 模拟购买状态（仅在测试中使用）
         store._setPurchasedProductIDsForTesting(["test.basic"])
         #expect(store.isPurchased("test.basic") == true)
         #expect(store.isPurchased(TestProduct.basic) == true)
         #expect(store.isPurchased("test.premium") == false)
+        #expect(store.purchaseStatus == .purchased)
         #expect(store.hasPurchased == true)
         #expect(store.hasNotPurchased == false)
     }

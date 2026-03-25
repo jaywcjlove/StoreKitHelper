@@ -56,10 +56,10 @@ struct PurchaseExample: View {
             Text("购买状态")
                 .font(.headline)
             HStack {
-                Image(systemName: store.hasPurchased ? "checkmark.circle.fill" : "xmark.circle.fill")
-                    .foregroundColor(store.hasPurchased ? .green : .red)
+                Image(systemName: statusIconName)
+                    .foregroundColor(statusColor)
                 
-                Text(store.hasPurchased ? "已购买" : "未购买")
+                Text(statusText)
                     .font(.subheadline)
                 
                 Spacer()
@@ -99,7 +99,20 @@ struct PurchaseExample: View {
             Text("应用功能")
                 .font(.headline)
             
-            if store.hasNotPurchased {
+            if store.purchaseStatus == .loading {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("同步购买状态中")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text("正在确认已购项目，请稍候")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(Color.secondary.opacity(0.08))
+                .cornerRadius(8)
+            } else if store.hasNotPurchased {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("🔒 受限功能")
                         .font(.subheadline)
@@ -126,6 +139,39 @@ struct PurchaseExample: View {
                 .background(Color.green.opacity(0.1))
                 .cornerRadius(8)
             }
+        }
+    }
+    
+    private var statusText: String {
+        switch store.purchaseStatus {
+        case .loading:
+            "同步中"
+        case .purchased:
+            "已购买"
+        case .notPurchased:
+            "未购买"
+        }
+    }
+    
+    private var statusIconName: String {
+        switch store.purchaseStatus {
+        case .loading:
+            "clock.badge.questionmark"
+        case .purchased:
+            "checkmark.circle.fill"
+        case .notPurchased:
+            "xmark.circle.fill"
+        }
+    }
+    
+    private var statusColor: Color {
+        switch store.purchaseStatus {
+        case .loading:
+            .secondary
+        case .purchased:
+            .green
+        case .notPurchased:
+            .red
         }
     }
 }

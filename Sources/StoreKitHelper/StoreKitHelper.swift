@@ -13,6 +13,16 @@ public protocol InAppProduct: CaseIterable, Identifiable where ID == ProductID {
     var id: ProductID { get }
 }
 
+/// 购买状态
+public enum PurchaseStatus: Sendable, Equatable {
+    /// 当前购买状态尚未完成首次同步
+    case loading
+    /// 当前存在有效购买
+    case purchased
+    /// 当前不存在有效购买
+    case notPurchased
+}
+
 // MARK: - StoreContext
 
 /// StoreKit 上下文，用于管理应用内购买状态
@@ -23,6 +33,8 @@ public final class StoreContext: ObservableObject {
     @Published public private(set) var products: [Product] = []
     /// 购买的产品标识符集合
     @Published public private(set) var purchasedProductIDs: Set<String> = []
+    /// 当前购买状态
+    @Published public private(set) var purchaseStatus: PurchaseStatus = .loading
     /// 是否正在加载
     @Published public private(set) var isLoading = false
     /// 错误信息
@@ -35,12 +47,17 @@ public final class StoreContext: ObservableObject {
     
     /// 用户是否没有购买任何产品
     public var hasNotPurchased: Bool {
-        purchasedProductIDs.isEmpty
+        purchaseStatus == .notPurchased
     }
     
     /// 用户是否已购买任何产品
     public var hasPurchased: Bool {
-        !purchasedProductIDs.isEmpty
+        purchaseStatus == .purchased
+    }
+    
+    /// 用户购买状态是否已完成首次同步
+    public var hasResolvedPurchaseStatus: Bool {
+        purchaseStatus != .loading
     }
     public let productIDs: [String]
     
@@ -84,6 +101,7 @@ public final class StoreContext: ObservableObject {
                 if let transaction = checkVerified(verificationResult) {
                     // 更新购买状态
                     purchasedProductIDs.insert(transaction.productID)
+                    purchaseStatus = .purchased
                     // 完成交易
                     await transaction.finish()
                     
@@ -188,6 +206,7 @@ public final class StoreContext: ObservableObject {
         if let transaction = checkVerified(verificationResult) {
             // 更新购买状态
             purchasedProductIDs.insert(transaction.productID)
+            purchaseStatus = .purchased
             // 完成交易
             await transaction.finish()
         }
@@ -246,7 +265,23 @@ public final class StoreContext: ObservableObject {
         
         await MainActor.run {
             self.purchasedProductIDs = purchasedIDs
+            self.purchaseStatus = purchasedIDs.isEmpty ? .notPurchased : .purchased
         }
     }
 }
 
+#if DEBUG
+extension StoreContext {
+    func _setPurchasedProductIDsForTesting(_ productIDs: Set<String>) {
+        purchasedProductIDs = productIDs
+        purchaseStatus = productIDs.isEmpty ? .notPurchased : .purchased
+    }
+    
+    func _setPurchaseStatusForTesting(_ status: PurchaseStatus) {
+        purchaseStatus = status
+        if status != .purchased {
+            purchasedProductIDs = []
+        }
+    }
+}
+#endif

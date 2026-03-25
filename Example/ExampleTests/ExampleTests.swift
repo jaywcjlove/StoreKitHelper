@@ -63,9 +63,14 @@ final class StoreKitNetworkErrorTests {
     func testStoreContextInitialization() async throws {
         let session = try makeSession()
         let store = await StoreContext(products: AppProduct.allCases)
+        #expect(await store.purchaseStatus == .loading)
+        #expect(await store.hasResolvedPurchaseStatus == false)
+        #expect(await store.hasNotPurchased == false)
         try await Task.sleep(for: .milliseconds(500))
         #expect(await store.products.count == 2)
         #expect(await store.purchasedProductIDs.count == 0)
+        #expect(await store.purchaseStatus == .notPurchased)
+        #expect(await store.hasResolvedPurchaseStatus == true)
         #expect(await store.hasNotPurchased == true)
         #expect(await store.hasPurchased == false)
         let product = await store.products.first(where: { $0.id == AppProduct.lifetime.id })
@@ -86,6 +91,7 @@ final class StoreKitNetworkErrorTests {
         try await Task.sleep(for: .milliseconds(500))
         #expect(await store.products.count == 0)
         #expect(await store.purchasedProductIDs.count == 0)
+        #expect(await store.purchaseStatus == .notPurchased)
         #expect(await store.hasNotPurchased == true)
         #expect(await store.hasPurchased == false)
         session.clearTransactions()
@@ -100,6 +106,7 @@ final class StoreKitNetworkErrorTests {
         try await Task.sleep(for: .milliseconds(500))
         #expect(await store.products.count == 2)
         #expect(await store.purchasedProductIDs.count == 0)
+        #expect(await store.purchaseStatus == .notPurchased)
         #expect(await store.hasNotPurchased == true)
         #expect(await store.hasPurchased == false)
         let lifetime = await store.products.first(where: { $0.id == AppProduct.lifetime.id })
@@ -109,6 +116,7 @@ final class StoreKitNetworkErrorTests {
             session.disableDialogs = true
             await store.purchase(lifetime)
         }
+        #expect(await store.purchaseStatus == .purchased)
         #expect(await store.hasPurchased == true)
         #expect(await store.purchasedProductIDs.contains(AppProduct.lifetime.id) == true)
         session.clearTransactions()
@@ -117,6 +125,7 @@ final class StoreKitNetworkErrorTests {
         #expect(await store.purchasedProductIDs.contains(AppProduct.lifetime.id) == true)
         session.disableDialogs = true
         await store.restorePurchases()
+        #expect(await store.purchaseStatus == .notPurchased)
         #expect(await store.hasPurchased == false)
         session.clearTransactions()
         session.resetToDefaultState()
@@ -140,6 +149,7 @@ final class StoreKitNetworkErrorTests {
         }
             
         // 验证购买成功
+        #expect(await store.purchaseStatus == .purchased)
         #expect(await store.hasPurchased == true)
         #expect(await store.purchasedProductIDs.contains(AppProduct.monthly.id) == true)
         
@@ -152,6 +162,7 @@ final class StoreKitNetworkErrorTests {
         
         // 验证订阅已过期
         #expect(await store.purchasedProductIDs.contains(AppProduct.monthly.id) == false)
+        #expect(await store.purchaseStatus == .notPurchased)
         #expect(await store.hasPurchased == false)
         
         // 清理
