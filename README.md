@@ -109,6 +109,20 @@ var body: some View {
 }
 ```
 
+The default purchase call remains unchanged:
+
+```swift
+await store.purchase(product)
+```
+
+If you need StoreKit purchase options, you can now pass them through directly:
+
+```swift
+await store.purchase(product, options: [
+    .appAccountToken(appAccountToken)
+])
+```
+
 Compatible legacy usage:
 
 ```swift
@@ -232,7 +246,7 @@ enum PurchaseStatus {
 
 ### StoreContext Methods
 
-- `purchase(_ product: Product)` - Purchase a specific product
+- `purchase(_ product: Product, options: Set<Product.PurchaseOption> = [])` - Purchase a specific product, optionally forwarding StoreKit purchase options
 - `restorePurchases()` - Restore previous purchases
 - `isPurchased(_ productID: ProductID) -> Bool` - Check if a product is purchased by ID
 - `isPurchased(_ product: InAppProduct) -> Bool` - Check if a product is purchased

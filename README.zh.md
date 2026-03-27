@@ -109,6 +109,20 @@ var body: some View {
 }
 ```
 
+默认购买调用方式保持不变：
+
+```swift
+await store.purchase(product)
+```
+
+如果需要传递 StoreKit 的购买选项，现在也可以直接透传：
+
+```swift
+await store.purchase(product, options: [
+    .appAccountToken(appAccountToken)
+])
+```
+
 兼容旧写法：
 
 ```swift
@@ -230,7 +244,7 @@ enum PurchaseStatus {
 
 ### StoreContext 方法
 
-- `purchase(_ product: Product)` - 购买指定产品
+- `purchase(_ product: Product, options: Set<Product.PurchaseOption> = [])` - 购买指定产品，并可选透传 StoreKit 购买参数
 - `restorePurchases()` - 恢复之前的购买
 - `isPurchased(_ productID: ProductID) -> Bool` - 根据 ID 检查产品是否已购买
 - `isPurchased(_ product: InAppProduct) -> Bool` - 检查产品是否已购买

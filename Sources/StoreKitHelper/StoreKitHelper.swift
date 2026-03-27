@@ -92,10 +92,9 @@ public final class StoreContext: ObservableObject {
     
     // MARK: 购买产品
     /// - Parameter product: 要购买的产品
-    public func purchase(_ product: Product) async {
+    public func purchase(_ product: Product, options: Set<Product.PurchaseOption> = []) async {
         do {
-            let result = try await product.purchase()
-            
+            let result = try await product.purchase(options: options)
             switch result {
             case .success(let verificationResult):
                 if let transaction = checkVerified(verificationResult) {
