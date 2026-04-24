@@ -13,12 +13,12 @@ jobs:
       - uses: actions/checkout@v6
       - name: Extract version from tag
         id: extract_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       - name: Create Tag
         id: create_tag
         uses: jaywcjlove/create-tag-action@main
         with:
-          version: ${{ env.VERSION }}
+          version: ${{ steps.extract_version.outputs.version }}
           release: true
           body: |
-            ## Changes in version ${{ env.VERSION }}
+            **Full Changelog**: https://github.com/jaywcjlove/PermissionFlow/commits/${{ steps.extract_version.outputs.version }}
