@@ -56,7 +56,7 @@ public enum StoreKitError: Error, LocalizedError, Equatable {
             return StoreKitHelperL18n.localized(key: "user_cancelled", locale: locale)
         case .purchasePending:
             return StoreKitHelperL18n.localized(key: "purchase_pending", locale: locale)
-        case .unknownError(let message):
+        case .unknownError(_):
             return StoreKitHelperL18n.localized(key: "unknown_error", locale: locale)
         }
     }
