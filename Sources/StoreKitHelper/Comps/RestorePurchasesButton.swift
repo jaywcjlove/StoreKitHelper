@@ -22,7 +22,7 @@ struct RestorePurchasesButton: View {
         return false
     }
     var body: some View {
-        let noPurchaseTitle = String.localizedString(key: "no_purchase_available", locale: locale)
+        let noPurchaseTitle = StoreKitHelperL18n.localized(key: "no_purchase_available", locale: locale)
         Button(action: {
             Task {
                 restoringPurchase = true
@@ -31,7 +31,7 @@ struct RestorePurchasesButton: View {
                 if store.purchasedProductIDs.count > 0 {
                     popupDismissHandle?()
                 } else if showError(error: store.storeError) == true {
-                    NotifyAlert.alert(title: store.storeError?.description(locale: locale) ??  noPurchaseTitle, message: "")
+                    NotifyAlert.alert(title: store.storeError?.description(locale: locale) ??  noPurchaseTitle, message: "", locale: locale)
                 }
             }
         }, label: {

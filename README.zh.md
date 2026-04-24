@@ -140,6 +140,22 @@ var body: some View {
 }
 ```
 
+## 国际化
+
+如果你需要在包外部读取 `StoreKitHelper` 自带的国际化文案，请使用 `StoreKitHelperL18n.localized(...)`。
+
+这个 API 会从包自身的资源 bundle 中取值，同时避免与主项目里自定义的 `String` 扩展发生符号冲突。
+
+```swift
+import StoreKitHelper
+
+let locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
+let title = StoreKitHelperL18n.localized(
+    key: "purchase_failed",
+    locale: locale
+)
+```
+
 ## StoreKitHelperView
 
 使用 `StoreKitHelperView` 直接显示应用内购买弹窗视图，并通过链式 API 配置各种参数。

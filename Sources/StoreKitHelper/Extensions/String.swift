@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+public enum StoreKitHelperL18n {
+    public static func localized(key: String, locale: Locale, _ arguments: any CVarArg...) -> String {
+        String.localizedString(key: key, locale: locale, arguments)
+    }
+}
+
 internal extension String {
     static func localizedString(key: String, locale: Locale, _ arguments: any CVarArg...) -> String {
         guard let path = Bundle.module.path(forResource: locale.identifier, ofType: "lproj"),

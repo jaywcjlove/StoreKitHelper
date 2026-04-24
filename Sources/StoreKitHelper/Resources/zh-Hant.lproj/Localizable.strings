@@ -17,6 +17,7 @@
 
 "purchase" = "購買";
 "purchase_failed" = "購買失敗";
+"ok" = "確定";
 
 "unlock_premium" = "解鎖高級功能";
 
@@ -29,4 +30,3 @@
 "user_cancelled" = "使用者取消購買";
 "purchase_pending" = "購買等待審核中";
 "unknown_error" = "未知錯誤: %@";
-

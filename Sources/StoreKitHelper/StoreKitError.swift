@@ -43,21 +43,21 @@ public enum StoreKitError: Error, LocalizedError, Equatable {
     public func description(locale: Locale) -> String {
         switch self {
         case .productLoadFailed(let error):
-            return String.localizedString(key: "product_load_failed", locale: locale, error.localizedDescription)
+            return StoreKitHelperL18n.localized(key: "product_load_failed", locale: locale, error.localizedDescription)
         case .purchaseFailed(let error):
-            return String.localizedString(key: "purchase_failed_with_error", locale: locale, error.localizedDescription)
+            return StoreKitHelperL18n.localized(key: "purchase_failed_with_error", locale: locale, error.localizedDescription)
         case .restoreFailed(let error):
-            return String.localizedString(key: "restore_failed_with_error", locale: locale, error.localizedDescription)
+            return StoreKitHelperL18n.localized(key: "restore_failed_with_error", locale: locale, error.localizedDescription)
         case .verificationFailed:
-            return String.localizedString(key: "verification_failed", locale: locale)
+            return StoreKitHelperL18n.localized(key: "verification_failed", locale: locale)
         case .networkError(let error):
-            return String.localizedString(key: "network_error", locale: locale, error.localizedDescription)
+            return StoreKitHelperL18n.localized(key: "network_error", locale: locale, error.localizedDescription)
         case .userCancelled:
-            return String.localizedString(key: "user_cancelled", locale: locale)
+            return StoreKitHelperL18n.localized(key: "user_cancelled", locale: locale)
         case .purchasePending:
-            return String.localizedString(key: "purchase_pending", locale: locale)
+            return StoreKitHelperL18n.localized(key: "purchase_pending", locale: locale)
         case .unknownError(let message):
-            return String.localizedString(key: "unknown_error", locale: locale)
+            return StoreKitHelperL18n.localized(key: "unknown_error", locale: locale)
         }
     }
 }

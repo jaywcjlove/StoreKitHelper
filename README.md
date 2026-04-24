@@ -140,6 +140,22 @@ var body: some View {
 }
 ```
 
+## Localization
+
+If you need to read localization strings from `StoreKitHelper` outside the package, use `StoreKitHelperL18n.localized(...)`.
+
+This API resolves strings from the package resource bundle and avoids symbol conflicts with custom `String` extensions in the host app.
+
+```swift
+import StoreKitHelper
+
+let locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
+let title = StoreKitHelperL18n.localized(
+    key: "purchase_failed",
+    locale: locale
+)
+```
+
 ## StoreKitHelperView
 
 Use `StoreKitHelperView` to directly display in-app purchase popup views and configure various parameters through a chainable API.

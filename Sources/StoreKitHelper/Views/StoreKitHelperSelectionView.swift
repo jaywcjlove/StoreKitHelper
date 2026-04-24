@@ -116,7 +116,6 @@ public struct StoreKitHelperSelectionView: View {
         }
     }
     func purchase(product: Product) {
-        let purchaseFailed = String.localizedString(key: "purchase_failed", locale: locale)
         Task {
             buyingProductID = product.id
             await store.purchase(product)

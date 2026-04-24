@@ -11,17 +11,19 @@ import AppKit
 #else
 import UIKit
 #endif
+import Foundation
 
 class NotifyAlert {
     nonisolated(unsafe) static let shared = NotifyAlert()
-    @MainActor static func alert(title: String, message: String) {
+    @MainActor static func alert(title: String, message: String, locale: Locale = .current) {
+        let okTitle = StoreKitHelperL18n.localized(key: "ok", locale: locale)
         #if os(macOS)
         let alert = NSAlert()
         alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = .warning
         alert.window.level = .mainMenu
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: okTitle)
         alert.runModal()
         #else
         guard let keyWindow = UIApplication.shared.connectedScenes
@@ -38,7 +40,7 @@ class NotifyAlert {
             return
         }
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: okTitle, style: .default))
         viewController.present(alert, animated: true)
         #endif
     }
