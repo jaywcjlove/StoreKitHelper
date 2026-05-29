@@ -57,13 +57,28 @@
 
           ],
           "codeOffers" : [
-
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "eligibility" : [
+                "existing",
+                "expired",
+                "new"
+              ],
+              "internalID" : "AB00CA05",
+              "isStackable" : true,
+              "numberOfPeriods" : 1,
+              "paymentMode" : "free",
+              "referenceName" : "www",
+              "subscriptionPeriod" : "P1M"
+            }
           ],
           "displayPrice" : "0.99",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "0C48BA22",
-          "introductoryOffer" : null,
+          "introductoryOffers" : [
+
+          ],
           "localizations" : [
             {
               "description" : "Subscribe monthly to unlock all features",
@@ -89,7 +104,7 @@
     }
   ],
   "version" : {
-    "major" : 4,
+    "major" : 5,
     "minor" : 0
   }
 }

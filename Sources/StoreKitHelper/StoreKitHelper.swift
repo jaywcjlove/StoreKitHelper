@@ -66,6 +66,7 @@ public final class StoreContext: ObservableObject {
     // MARK: - Private Properties
     
     private var transactionListener: Task<Void, Never>?
+    private var shouldRefreshPurchasedProductsAfterOfferCodeRedemption = false
     
     // MARK: - Initialization
     /// 初始化 StoreContext
@@ -157,6 +158,19 @@ public final class StoreContext: ObservableObject {
         isShowingOfferCodeRedemption = true
     }
 
+    /// 更新优惠代码兑换面板显示状态
+    func setOfferCodeRedemptionPresented(_ isPresented: Bool) {
+        isShowingOfferCodeRedemption = isPresented
+        guard isPresented == false,
+              shouldRefreshPurchasedProductsAfterOfferCodeRedemption == true else {
+            return
+        }
+
+        Task {
+            await refreshPurchasedProductsAfterOfferCodeRedemption()
+        }
+    }
+
     /// 重新同步当前有效购买
     public func refreshPurchasedProducts() async {
         await updatePurchasedProducts()
@@ -167,7 +181,11 @@ public final class StoreContext: ObservableObject {
         switch result {
         case .success:
             storeError = nil
-            await updatePurchasedProducts()
+            if isShowingOfferCodeRedemption == true {
+                shouldRefreshPurchasedProductsAfterOfferCodeRedemption = true
+            } else {
+                await updatePurchasedProducts()
+            }
         case .failure(let error):
             storeError = .purchaseFailed(error)
         }
@@ -226,6 +244,12 @@ public final class StoreContext: ObservableObject {
     /// - Parameter verificationResult: 交易验证结果
     private func handleTransaction(_ verificationResult: VerificationResult<StoreKit.Transaction>) async {
         if let transaction = checkVerified(verificationResult) {
+            guard isShowingOfferCodeRedemption == false else {
+                shouldRefreshPurchasedProductsAfterOfferCodeRedemption = true
+                await transaction.finish()
+                return
+            }
+
             // 更新购买状态
             purchasedProductIDs.insert(transaction.productID)
             purchaseStatus = .purchased
@@ -244,6 +268,11 @@ public final class StoreContext: ObservableObject {
         case .verified(let safe):
             return safe
         }
+    }
+
+    private func refreshPurchasedProductsAfterOfferCodeRedemption() async {
+        shouldRefreshPurchasedProductsAfterOfferCodeRedemption = false
+        await updatePurchasedProducts()
     }
     
     // MARK: 加载产品列表

@@ -13,16 +13,20 @@ struct ContentView: View {
     @EnvironmentObject var store: StoreContext
 //    @Environment(\.locale) var locale
     var body: some View {
-        if store.hasNotPurchased == true {
+        if store.hasNotPurchased == true, store.isLoading == false  {
+            var _ = print("!~~~")
             PurchasePopupButton()
                 .sheet(isPresented: $store.isShowingPurchasePopup) {
                     PurchaseContent()
                 }
         }
-        let locale: Locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
-        PurchaseContent()
-            .environment(\.locale, .init(identifier: locale.identifier))
-//        PurchaseExample()
+        Button(action: {}, label: {
+            Label("Hello World", systemImage: "square.and.arrow.down.on.square.fill")
+        })
+//        let locale: Locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
+//        PurchaseContent()
+//            .environment(\.locale, .init(identifier: locale.identifier))
+////        PurchaseExample()
     }
 }
 

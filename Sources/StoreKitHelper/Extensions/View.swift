@@ -42,7 +42,7 @@ internal extension View {
         if #available(iOS 16.0, macOS 15.0, visionOS 1.0, *) {
             self.offerCodeRedemption(isPresented: Binding(
                 get: { store.isShowingOfferCodeRedemption },
-                set: { store.isShowingOfferCodeRedemption = $0 }
+                set: { store.setOfferCodeRedemptionPresented($0) }
             )) { result in
                 Task {
                     await store.handleOfferCodeRedemption(result)
