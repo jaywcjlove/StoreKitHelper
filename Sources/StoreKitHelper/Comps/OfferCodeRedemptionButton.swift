@@ -19,7 +19,7 @@ struct OfferCodeRedemptionButton: View {
             Button(action: {
                 store.presentOfferCodeRedemption()
             }, label: {
-                HStack {
+                HStack(spacing: 1) {
                     Image(systemName: "ticket")
 #if os(macOS)
                         .font(.system(size: 12))
