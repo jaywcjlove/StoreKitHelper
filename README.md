@@ -55,6 +55,7 @@ Please refer to the detailed `StoreKitHelper` [documentation](https://github.com
 - 🚀 **SwiftUI Native**: Designed specifically for SwiftUI with `@ObservableObject` and `@EnvironmentObject` support
 - 💡 **Simple API**: Clean and intuitive interface for managing in-app purchases
 - 🔄 **Automatic Updates**: Real-time transaction monitoring and status updates
+- 🎟️ **Offer Code Redemption**: Built-in support for Apple's system offer code redemption sheet
 - ✅ **Type Safe**: Protocol-based product definitions with compile-time safety
 - 🧪 **Testable**: Fully testable architecture with comprehensive test case coverage [ExampleTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Example/ExampleTests/ExampleTests.swift)/[StoreKitHelperTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Tests/StoreKitHelperTests/StoreKitHelperTests.swift)
 

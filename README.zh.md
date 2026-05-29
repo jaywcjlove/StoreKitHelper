@@ -55,6 +55,7 @@ StoreKit Helper
 - 🚀 **SwiftUI 原生**: 专为 SwiftUI 设计，支持 `@ObservableObject` 和 `@EnvironmentObject`
 - 💡 **简洁 API**: 干净直观的应用内购买管理接口
 - 🔄 **自动更新**: 实时交易监控和状态更新
+- 🎟️ **优惠代码兑换**: 内置支持 Apple 系统优惠代码兑换面板
 - ✅ **类型安全**: 基于协议的产品定义，提供编译时安全性
 - 🧪 **可测试**: 完全可测试的架构，测试用例覆盖 [ExampleTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Example/ExampleTests/ExampleTests.swift)/[StoreKitHelperTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Tests/StoreKitHelperTests/StoreKitHelperTests.swift)
 
