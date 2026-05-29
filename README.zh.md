@@ -126,22 +126,6 @@ await store.purchase(product, options: [
 ])
 ```
 
-## 优惠代码兑换
-
-`StoreKitHelperView` 和 `StoreKitHelperSelectionView` 会在支持的平台上显示“兑换优惠代码”入口。该入口支持 iOS 16+、macOS 15+、visionOS 1+。如果应用最低兼容 macOS 14，macOS 14 上不会显示该入口，也不会调用不支持的系统 API，因此可以继续正常编译和运行。
-
-你也可以手动展示 Apple 的系统优惠代码兑换面板：
-
-```swift
-@EnvironmentObject var store: StoreContext
-
-Button("兑换优惠代码") {
-    store.presentOfferCodeRedemption()
-}
-```
-
-兑换完成后，`StoreContext` 会重新同步当前有效权益，并更新 `purchasedProductIDs` / `purchaseStatus`。
-
 兼容旧写法：
 
 ```swift
@@ -157,6 +141,22 @@ var body: some View {
     }
 }
 ```
+
+## 优惠代码兑换
+
+`StoreKitHelperView` 和 `StoreKitHelperSelectionView` 会在支持的平台上显示“兑换优惠代码”入口。该入口支持 iOS 16+、macOS 15+、visionOS 1+。如果应用最低兼容 macOS 14，macOS 14 上不会显示该入口，也不会调用不支持的系统 API，因此可以继续正常编译和运行。
+
+你也可以手动展示 Apple 的系统优惠代码兑换面板：
+
+```swift
+@EnvironmentObject var store: StoreContext
+
+Button("兑换优惠代码") {
+    store.presentOfferCodeRedemption()
+}
+```
+
+兑换完成后，`StoreContext` 会重新同步当前有效权益，并更新 `purchasedProductIDs` / `purchaseStatus`。
 
 ## 国际化
 

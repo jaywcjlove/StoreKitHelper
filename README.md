@@ -126,22 +126,6 @@ await store.purchase(product, options: [
 ])
 ```
 
-## Offer Code Redemption
-
-`StoreKitHelperView` and `StoreKitHelperSelectionView` include a "Redeem Offer Code" entry on supported platforms. The entry is shown on iOS 16+, macOS 15+, and visionOS 1+. It is hidden on unsupported platforms, so apps with a macOS 14 minimum deployment target continue to build and run without showing the redemption UI.
-
-You can also present Apple's system offer code redemption sheet manually:
-
-```swift
-@EnvironmentObject var store: StoreContext
-
-Button("Redeem Offer Code") {
-    store.presentOfferCodeRedemption()
-}
-```
-
-After redemption completes, `StoreContext` refreshes current entitlements and updates `purchasedProductIDs` / `purchaseStatus`.
-
 Compatible legacy usage:
 
 ```swift
@@ -157,6 +141,22 @@ var body: some View {
     }
 }
 ```
+
+## Offer Code Redemption
+
+`StoreKitHelperView` and `StoreKitHelperSelectionView` include a "Redeem Offer Code" entry on supported platforms. The entry is shown on iOS 16+, macOS 15+, and visionOS 1+. It is hidden on unsupported platforms, so apps with a macOS 14 minimum deployment target continue to build and run without showing the redemption UI.
+
+You can also present Apple's system offer code redemption sheet manually:
+
+```swift
+@EnvironmentObject var store: StoreContext
+
+Button("Redeem Offer Code") {
+    store.presentOfferCodeRedemption()
+}
+```
+
+After redemption completes, `StoreContext` refreshes current entitlements and updates `purchasedProductIDs` / `purchaseStatus`.
 
 ## Localization
 
