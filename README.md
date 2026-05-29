@@ -124,6 +124,22 @@ await store.purchase(product, options: [
 ])
 ```
 
+## Offer Code Redemption
+
+`StoreKitHelperView` and `StoreKitHelperSelectionView` include a "Redeem Offer Code" entry on supported platforms. The entry is shown on iOS 16+, macOS 15+, and visionOS 1+. It is hidden on unsupported platforms, so apps with a macOS 14 minimum deployment target continue to build and run without showing the redemption UI.
+
+You can also present Apple's system offer code redemption sheet manually:
+
+```swift
+@EnvironmentObject var store: StoreContext
+
+Button("Redeem Offer Code") {
+    store.presentOfferCodeRedemption()
+}
+```
+
+After redemption completes, `StoreContext` refreshes current entitlements and updates `purchasedProductIDs` / `purchaseStatus`.
+
 Compatible legacy usage:
 
 ```swift
@@ -259,12 +275,15 @@ enum PurchaseStatus {
 - `hasNotPurchased: Bool` - Whether the user hasn't purchased any products after purchase state resolution
 - `hasPurchased: Bool` - Whether the user has purchased any products after purchase state resolution
 - `isLoading: Bool` - Whether products are currently loading
+- `isShowingOfferCodeRedemption: Bool` - Whether the system offer code redemption sheet is being presented
 - `errorMessage: String?` - Current error message, if any
 
 ### StoreContext Methods
 
 - `purchase(_ product: Product, options: Set<Product.PurchaseOption> = [])` - Purchase a specific product, optionally forwarding StoreKit purchase options
 - `restorePurchases()` - Restore previous purchases
+- `presentOfferCodeRedemption()` - Present Apple's system offer code redemption sheet on supported platforms
+- `refreshPurchasedProducts()` - Refresh current entitlements and purchase state
 - `isPurchased(_ productID: ProductID) -> Bool` - Check if a product is purchased by ID
 - `isPurchased(_ product: InAppProduct) -> Bool` - Check if a product is purchased
 - `product(for productID: ProductID) -> Product?` - Get product by ID

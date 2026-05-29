@@ -9,6 +9,7 @@
 "privacy_policy" = "プライバシーポリシー";
 
 "restore_purchases" = "購入を復元";
+"redeem_offer_code" = "オファーコードを使う";
 "no_purchase_available" = "復元可能な購入項目はありません";
 
 "store_unavailable" = "ストアは利用できません";

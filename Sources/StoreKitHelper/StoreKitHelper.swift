@@ -42,6 +42,8 @@ public final class StoreContext: ObservableObject {
     /// 弹出 PopUp 显示产品支付界面
     /// 是否显示购买弹窗
     @Published public var isShowingPurchasePopup: Bool = false
+    /// 是否显示优惠代码兑换面板
+    @Published public var isShowingOfferCodeRedemption: Bool = false
     
     // MARK: - Computed Properties
     
@@ -148,6 +150,27 @@ public final class StoreContext: ObservableObject {
     /// 清除当前错误
     public func clearError() {
         storeError = nil
+    }
+
+    /// 显示优惠代码兑换面板
+    public func presentOfferCodeRedemption() {
+        isShowingOfferCodeRedemption = true
+    }
+
+    /// 重新同步当前有效购买
+    public func refreshPurchasedProducts() async {
+        await updatePurchasedProducts()
+    }
+
+    /// 处理优惠代码兑换面板的完成结果
+    public func handleOfferCodeRedemption(_ result: Result<Void, Error>) async {
+        switch result {
+        case .success:
+            storeError = nil
+            await updatePurchasedProducts()
+        case .failure(let error):
+            storeError = .purchaseFailed(error)
+        }
     }
     
     /// 检查是否购买了指定产品

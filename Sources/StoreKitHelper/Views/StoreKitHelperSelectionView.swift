@@ -100,6 +100,9 @@ public struct StoreKitHelperSelectionView: View {
             }
             .padding(.trailing, 6)
             .padding(.vertical, 10)
+            OfferCodeRedemptionButton()
+                .disabled(buyingProductID != nil || store.isLoading)
+                .padding(.bottom, 8)
         }
         .onAppear() {
             selectedProductID = defaultSelectedProductId ?? store.productIDs.first ?? ""
@@ -114,6 +117,7 @@ public struct StoreKitHelperSelectionView: View {
                     .padding(.bottom, 8)
             }
         }
+        .storeKitHelperOfferCodeRedemption(store: store)
     }
     func purchase(product: Product) {
         Task {

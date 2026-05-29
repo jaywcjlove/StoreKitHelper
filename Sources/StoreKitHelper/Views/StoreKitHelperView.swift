@@ -36,6 +36,7 @@ public struct StoreKitHelperView: View {
                 .padding(6)
             Divider()
             HStack {
+                OfferCodeRedemptionButton()
                 RestorePurchasesButton(restoringPurchase: $restoringPurchase)
             }
             .padding(.vertical, 10)
@@ -51,6 +52,7 @@ public struct StoreKitHelperView: View {
                     .padding(.bottom, 8)
             }
         }
+        .storeKitHelperOfferCodeRedemption(store: store)
     }
 }
 

@@ -30,8 +30,8 @@ struct PurchaseContent: View {
     @EnvironmentObject var store: StoreContext
     let locale: Locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
     var body: some View {
-        StoreKitHelperView()
-//        StoreKitHelperSelectionView()
+//        StoreKitHelperView()
+        StoreKitHelperSelectionView()
             .environment(\.locale, .init(identifier: locale.identifier))
             .environment(\.pricingContent, { AnyView(PricingContent()) })
             .environment(\.popupDismissHandle, {

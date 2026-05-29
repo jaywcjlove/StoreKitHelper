@@ -124,6 +124,22 @@ await store.purchase(product, options: [
 ])
 ```
 
+## 优惠代码兑换
+
+`StoreKitHelperView` 和 `StoreKitHelperSelectionView` 会在支持的平台上显示“兑换优惠代码”入口。该入口支持 iOS 16+、macOS 15+、visionOS 1+。如果应用最低兼容 macOS 14，macOS 14 上不会显示该入口，也不会调用不支持的系统 API，因此可以继续正常编译和运行。
+
+你也可以手动展示 Apple 的系统优惠代码兑换面板：
+
+```swift
+@EnvironmentObject var store: StoreContext
+
+Button("兑换优惠代码") {
+    store.presentOfferCodeRedemption()
+}
+```
+
+兑换完成后，`StoreContext` 会重新同步当前有效权益，并更新 `purchasedProductIDs` / `purchaseStatus`。
+
 兼容旧写法：
 
 ```swift
@@ -257,12 +273,15 @@ enum PurchaseStatus {
 - `hasNotPurchased: Bool` - 在购买状态完成解析后，用户是否未购买任何产品
 - `hasPurchased: Bool` - 在购买状态完成解析后，用户是否已购买任何产品
 - `isLoading: Bool` - 产品是否正在加载中
+- `isShowingOfferCodeRedemption: Bool` - 是否正在展示系统优惠代码兑换面板
 - `errorMessage: String?` - 当前错误信息（如有）
 
 ### StoreContext 方法
 
 - `purchase(_ product: Product, options: Set<Product.PurchaseOption> = [])` - 购买指定产品，并可选透传 StoreKit 购买参数
 - `restorePurchases()` - 恢复之前的购买
+- `presentOfferCodeRedemption()` - 在支持的平台上展示 Apple 系统优惠代码兑换面板
+- `refreshPurchasedProducts()` - 重新同步当前有效权益和购买状态
 - `isPurchased(_ productID: ProductID) -> Bool` - 根据 ID 检查产品是否已购买
 - `isPurchased(_ product: InAppProduct) -> Bool` - 检查产品是否已购买
 - `product(for productID: ProductID) -> Product?` - 根据 ID 获取产品
