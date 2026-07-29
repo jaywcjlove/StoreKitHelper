@@ -291,6 +291,22 @@ enum PurchaseStatus {
 - `product(for productID: ProductID) -> Product?` - Get product by ID
 - `product(for product: InAppProduct) -> Product?` - Get product by InAppProduct
 
+### StoreKitResources
+
+Expose internal bundled resources externally via `Bundle.module`.
+For host apps to access localized strings or other assets bundled within StoreKitHelper.
+
+```swift
+import StoreKitHelper
+
+let bundle = StoreKitResources.bundle
+let title = bundle.localizedString(
+    forKey: "some.key",
+    value: "default text",
+    table: nil
+)
+```
+
 ## License
 
 Licensed under the MIT License.

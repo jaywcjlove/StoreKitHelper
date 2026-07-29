@@ -289,6 +289,21 @@ enum PurchaseStatus {
 - `product(for productID: ProductID) -> Product?` - 根据 ID 获取产品
 - `product(for product: InAppProduct) -> Product?` - 根据 InAppProduct 获取产品
 
+### StoreKitResources
+
+对外暴露包内资源 bundle（`Bundle.module`）。宿主 App 需要读取 StoreKitHelper 自带的本地化字符串或其他资源时使用：
+
+```swift
+import StoreKitHelper
+
+let bundle = StoreKitResources.bundle
+let title = bundle.localizedString(
+    forKey: "some.key",
+    value: "默认文案",
+    table: nil
+)
+```
+
 ## 许可证
 
 基于 MIT 许可证授权。
