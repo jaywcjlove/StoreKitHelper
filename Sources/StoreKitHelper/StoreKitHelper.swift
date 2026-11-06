@@ -42,7 +42,8 @@ enum EntitlementLookup: Equatable {
     case missing
 }
 
-/// 权益刷新的来源。自动刷新遇到空缓存时保留本进程已确认的购买；恢复购买以本次同步为准。
+/// 权益刷新的来源。两种模式都只在 StoreKit 明确否认时移除购买。
+/// 缓存里还没有记录时，保留本进程已经确认过的购买。
 enum EntitlementRefreshMode: Equatable {
     case automatic
     case restore
@@ -59,9 +60,15 @@ struct EntitlementMergeResult: Equatable {
     var reportUnverified: Bool
 }
 
+/// 本地曾经出现过这笔交易，后来 `Transaction.latest` 又变成空，说明记录已经被清掉。
+/// 启动时缓存还没同步则不是这种情况，应继续等待。
+func entitlementLookupForMissingTransaction(wasSeenInCache: Bool) -> EntitlementLookup {
+    wasSeenInCache ? .notEntitled : .missing
+}
+
 /// 把 `currentEntitlements` 和按商品补查的结果合成一份购买集合。
 /// 第二台 Mac 的 `currentEntitlements` 经常先是空的；补查到有效交易时要算已购买。
-/// 自动刷新如果只是“缓存还没这条记录”，不能清掉本进程里刚验过的购买。
+/// 缓存只是还没有记录时，不能清掉本进程里刚验过的购买。
 func mergeEntitlements(
     snapshot: EntitlementSnapshot,
     existingIDs: Set<String>,
@@ -89,7 +96,7 @@ func mergeEntitlements(
     case .automatic:
         protectedIDs = existingIDs
     case .restore:
-        protectedIDs = sessionGrantsToKeep
+        protectedIDs = existingIDs.union(sessionGrantsToKeep)
     }
 
     for productID in protectedIDs where productIDs.contains(productID) == false {
@@ -158,8 +165,10 @@ public final class StoreContext: ObservableObject {
     private var entitlementRefreshGeneration: UInt64 = 0
     private var activationObserver: NSObjectProtocol?
     private var lastEntitlementRefreshAt: Date?
-    /// 本进程里验签通过的商品。恢复购买时只保护同步期间新出现的那些，避免空缓存把它们清掉。
+    /// 本进程里验签通过的商品。同步期间新出现的交易即使缓存还没跟上，也不能被恢复购买清掉。
     private var verifiedThisSession: Set<String> = []
+    /// 本地缓存里曾经出现过交易记录的商品。之后再读不到，就视为已退出账号或记录被移除。
+    private var productsSeenInCache: Set<String> = []
     /// 优惠码兑换页还开着时先记下，等页面关闭再解锁，避免付费墙在系统弹窗底下被收起。
     private var pendingOfferProductIDs: Set<String> = []
     private var shouldRefreshPurchasedProductsAfterOfferCodeRedemption = false
@@ -202,6 +211,7 @@ public final class StoreContext: ObservableObject {
     /// - Parameter product: 要购买的产品
     public func purchase(_ product: Product, options: Set<Product.PurchaseOption> = []) async {
         cancelEntitlementRetries()
+        defer { resumeEntitlementRetriesIfNeeded() }
         do {
             let result = try await product.purchase(options: options)
             switch result {
@@ -254,6 +264,8 @@ public final class StoreContext: ObservableObject {
                 storeError = .restoreFailed(error)
             }
         }
+        // 缓存可能在同步返回之后才写完。这次没读到购买时，继续做启动时那几轮补查。
+        resumeEntitlementRetriesIfNeeded()
     }
     
     /// 清除当前错误
@@ -341,9 +353,9 @@ public final class StoreContext: ObservableObject {
     // MARK: - Private Methods
     /// 开始监听交易更新
     private func startTransactionListener() {
-        transactionListener = Task.detached {
+        transactionListener = Task.detached { [weak self] in
             for await verificationResult in StoreKit.Transaction.updates {
-                await self.handleTransaction(verificationResult)
+                await self?.handleTransaction(verificationResult)
             }
         }
     }
@@ -474,9 +486,11 @@ public final class StoreContext: ObservableObject {
             snapshot.lookups[productID] = await lookupEntitlement(productID)
             guard generation == entitlementRefreshGeneration else { return }
         }
+        var grantsToKeep = sessionGrantsToKeep
         // 兑换页还在时，先不要把刚兑换的商品写进已购买，等页面关闭再解锁。
         if isShowingOfferCodeRedemption {
             snapshot.scannedIDs.subtract(pendingOfferProductIDs)
+            grantsToKeep.subtract(pendingOfferProductIDs)
             for productID in pendingOfferProductIDs {
                 snapshot.lookups[productID] = .missing
             }
@@ -485,7 +499,7 @@ public final class StoreContext: ObservableObject {
         let merged = mergeEntitlements(
             snapshot: snapshot,
             existingIDs: purchasedProductIDs,
-            sessionGrantsToKeep: sessionGrantsToKeep,
+            sessionGrantsToKeep: grantsToKeep,
             mode: mode
         )
         guard generation == entitlementRefreshGeneration else { return }
@@ -506,6 +520,7 @@ public final class StoreContext: ObservableObject {
         for await verificationResult in StoreKit.Transaction.currentEntitlements {
             switch verificationResult {
             case .verified(let transaction):
+                productsSeenInCache.insert(transaction.productID)
                 if await isTransactionEntitled(transaction) {
                     snapshot.scannedIDs.insert(transaction.productID)
                 }
@@ -519,11 +534,14 @@ public final class StoreContext: ObservableObject {
     /// 按商品补查。`currentEntitlements` 为空时，非消耗型购买仍可能在 `Transaction.latest` 里。
     private func lookupEntitlement(_ productID: String) async -> EntitlementLookup {
         guard let verificationResult = await StoreKit.Transaction.latest(for: productID) else {
-            return .missing
+            return entitlementLookupForMissingTransaction(
+                wasSeenInCache: productsSeenInCache.contains(productID)
+            )
         }
         guard let transaction = checkVerified(verificationResult) else {
             return .unverified
         }
+        productsSeenInCache.insert(productID)
         if await isTransactionEntitled(transaction) {
             return .entitled
         }
@@ -531,7 +549,11 @@ public final class StoreContext: ObservableObject {
     }
 
     /// `currentEntitlements` 会包含宽限期内的订阅，那些交易的 `expirationDate` 可能已经早于本机时间。
+    /// 消耗型商品没有持续权益，买过一次也不能一直留在已购买集合里。
     private func isTransactionEntitled(_ transaction: StoreKit.Transaction) async -> Bool {
+        guard transaction.productType != .consumable else {
+            return false
+        }
         guard transaction.revocationDate == nil, transaction.isUpgraded == false else {
             return false
         }
@@ -590,6 +612,11 @@ public final class StoreContext: ObservableObject {
     private func cancelEntitlementRetries() {
         entitlementRetryTask?.cancel()
         entitlementRetryTask = nil
+    }
+
+    private func resumeEntitlementRetriesIfNeeded() {
+        guard purchaseStatus == .notPurchased else { return }
+        scheduleEntitlementRetriesIfUnpurchased()
     }
 
     private func observeApplicationActivation() {

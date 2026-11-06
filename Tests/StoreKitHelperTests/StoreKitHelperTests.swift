@@ -107,9 +107,9 @@ func testMergeDropsConfirmedRevocation() {
     #expect(merged.productIDs.isEmpty)
 }
 
-@Test("Restore trusts an empty sync except grants verified during that sync")
-func testMergeRestoreClearsStaleMemoryButKeepsNewSessionGrant() {
-    let cleared = mergeEntitlements(
+@Test("Restore keeps a purchase when the cache has no record yet")
+func testMergeRestoreKeepsPurchaseWhenCacheMisses() {
+    let kept = mergeEntitlements(
         snapshot: EntitlementSnapshot(
             scannedIDs: [],
             lookups: ["pro": .missing]
@@ -118,9 +118,9 @@ func testMergeRestoreClearsStaleMemoryButKeepsNewSessionGrant() {
         sessionGrantsToKeep: [],
         mode: .restore
     )
-    #expect(cleared.productIDs.isEmpty)
+    #expect(kept.productIDs == ["pro"])
 
-    let kept = mergeEntitlements(
+    let grantedDuringSync = mergeEntitlements(
         snapshot: EntitlementSnapshot(
             scannedIDs: [],
             lookups: ["pro": .missing]
@@ -129,7 +129,27 @@ func testMergeRestoreClearsStaleMemoryButKeepsNewSessionGrant() {
         sessionGrantsToKeep: ["pro"],
         mode: .restore
     )
-    #expect(kept.productIDs == ["pro"])
+    #expect(grantedDuringSync.productIDs == ["pro"])
+}
+
+@Test("A transaction that disappeared from the cache is no longer entitled")
+func testMissingTransactionAfterBeingSeenIsNotEntitled() {
+    #expect(entitlementLookupForMissingTransaction(wasSeenInCache: true) == .notEntitled)
+    #expect(entitlementLookupForMissingTransaction(wasSeenInCache: false) == .missing)
+}
+
+@Test("Restore drops a purchase StoreKit confirms is gone")
+func testMergeRestoreDropsConfirmedRevocation() {
+    let merged = mergeEntitlements(
+        snapshot: EntitlementSnapshot(
+            scannedIDs: [],
+            lookups: ["pro": .notEntitled]
+        ),
+        existingIDs: ["pro"],
+        sessionGrantsToKeep: ["pro"],
+        mode: .restore
+    )
+    #expect(merged.productIDs.isEmpty)
 }
 
 @Test("Unverified transactions do not unlock and are reported when nothing else is owned")
