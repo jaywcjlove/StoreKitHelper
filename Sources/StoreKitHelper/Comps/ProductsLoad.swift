@@ -32,7 +32,6 @@ public struct ProductsLoad<Content: View>: View {
     }
     public var body: some View {
         ZStack {
-            let info = showError(error: store.storeError)
             if showError(error: store.storeError) == true {
                 VStack(alignment: .leading, spacing: 6) {
                     if let error = store.storeError {
