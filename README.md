@@ -40,7 +40,10 @@
 StoreKit Helper
 ===
 
-[中文](./README.zh.md)
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-048754?logo=buymeacoffee)](https://jaywcjlove.github.io/#/sponsor)
+[![Telegram Channel](https://img.shields.io/badge/%20-Telegram-00618f.svg?logo=Telegram)](https://t.me/s/AwesomeMacApps)
+[![Follow On X](https://img.shields.io/badge/Follow%20on%20X-333333?logo=x&logoColor=white)](https://x.com/jaywcjlove)
+[![Chinese List](https://jaywcjlove.github.io/sb/lang/chinese.svg)](./README.zh.md)
 
 A lightweight StoreKit2 wrapper designed specifically for SwiftUI, making in-app purchases implementation simpler and more intuitive.
 
