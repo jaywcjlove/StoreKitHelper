@@ -63,3 +63,83 @@ func testPurchaseStatusMethods() async throws {
         #expect(store.hasNotPurchased == false)
     }
 }
+
+@Test("Empty currentEntitlements still unlocks when latest transaction is entitled")
+func testMergeKeepsEntitlementMissingFromCurrentEntitlements() {
+    let merged = mergeEntitlements(
+        snapshot: EntitlementSnapshot(
+            scannedIDs: [],
+            lookups: ["pro": .entitled]
+        ),
+        existingIDs: [],
+        sessionGrantsToKeep: [],
+        mode: .automatic
+    )
+    #expect(merged.productIDs == ["pro"])
+    #expect(merged.reportUnverified == false)
+}
+
+@Test("Automatic refresh keeps a purchase when the local cache has no record yet")
+func testMergeKeepsExistingPurchaseWhenCacheMisses() {
+    let merged = mergeEntitlements(
+        snapshot: EntitlementSnapshot(
+            scannedIDs: [],
+            lookups: ["pro": .missing]
+        ),
+        existingIDs: ["pro"],
+        sessionGrantsToKeep: [],
+        mode: .automatic
+    )
+    #expect(merged.productIDs == ["pro"])
+}
+
+@Test("Automatic refresh drops a purchase StoreKit confirms is gone")
+func testMergeDropsConfirmedRevocation() {
+    let merged = mergeEntitlements(
+        snapshot: EntitlementSnapshot(
+            scannedIDs: [],
+            lookups: ["pro": .notEntitled]
+        ),
+        existingIDs: ["pro"],
+        sessionGrantsToKeep: ["pro"],
+        mode: .automatic
+    )
+    #expect(merged.productIDs.isEmpty)
+}
+
+@Test("Restore trusts an empty sync except grants verified during that sync")
+func testMergeRestoreClearsStaleMemoryButKeepsNewSessionGrant() {
+    let cleared = mergeEntitlements(
+        snapshot: EntitlementSnapshot(
+            scannedIDs: [],
+            lookups: ["pro": .missing]
+        ),
+        existingIDs: ["pro"],
+        sessionGrantsToKeep: [],
+        mode: .restore
+    )
+    #expect(cleared.productIDs.isEmpty)
+
+    let kept = mergeEntitlements(
+        snapshot: EntitlementSnapshot(
+            scannedIDs: [],
+            lookups: ["pro": .missing]
+        ),
+        existingIDs: [],
+        sessionGrantsToKeep: ["pro"],
+        mode: .restore
+    )
+    #expect(kept.productIDs == ["pro"])
+}
+
+@Test("Unverified transactions do not unlock and are reported when nothing else is owned")
+func testMergeReportsUnverifiedWithoutGranting() {
+    let merged = mergeEntitlements(
+        snapshot: EntitlementSnapshot(sawUnverified: true),
+        existingIDs: [],
+        sessionGrantsToKeep: [],
+        mode: .automatic
+    )
+    #expect(merged.productIDs.isEmpty)
+    #expect(merged.reportUnverified == true)
+}

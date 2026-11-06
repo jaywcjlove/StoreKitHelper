@@ -15,12 +15,6 @@ struct RestorePurchasesButton: View {
     @Environment(\.popupDismissHandle) private var popupDismissHandle
     @EnvironmentObject var store: StoreContext
     @Binding var restoringPurchase: Bool
-    func showError(error: StoreKitError?) -> Bool {
-        guard let error else { return false }
-        guard error != .userCancelled else { return false }
-        guard case .restoreFailed = error else { return true }
-        return false
-    }
     var body: some View {
         let noPurchaseTitle = StoreKitHelperL18n.localized(key: "no_purchase_available", locale: locale)
         Button(action: {
@@ -30,8 +24,11 @@ struct RestorePurchasesButton: View {
                 restoringPurchase = false
                 if store.purchasedProductIDs.count > 0 {
                     popupDismissHandle?()
-                } else if showError(error: store.storeError) == true {
-                    NotifyAlert.alert(title: store.storeError?.description(locale: locale) ??  noPurchaseTitle, message: "", locale: locale)
+                } else if let error = store.storeError {
+                    guard error != .userCancelled else { return }
+                    NotifyAlert.alert(title: error.description(locale: locale), message: "", locale: locale)
+                } else {
+                    NotifyAlert.alert(title: noPurchaseTitle, message: "", locale: locale)
                 }
             }
         }, label: {
