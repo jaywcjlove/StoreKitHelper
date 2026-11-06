@@ -17,9 +17,23 @@ enum AppProduct: String, InAppProduct {
 @main
 struct ExampleApp: App {
     @StateObject var store = StoreContext(products: AppProduct.allCases)
+    @AppStorage("colorScheme") private var colorSchemeNumber = 0
     var body: some Scene {
         WindowGroup {
-            ContentView().environmentObject(store)
+            ContentView()
+                .environmentObject(store)
+                .preferredColorScheme(colorScheme)
         }
+    }
+    var colorScheme: ColorScheme? {
+        var result: ColorScheme? = .none
+        switch colorSchemeNumber {
+        case 0: result = .none
+        case 1: result = .dark
+        case 2: result = .light
+        default:
+            result = .none
+        }
+        return result
     }
 }

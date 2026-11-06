@@ -10,11 +10,18 @@ import StoreKit
 import StoreKitHelper
 
 struct ContentView: View {
+    @AppStorage("colorScheme") private var colorScheme = 0
     @EnvironmentObject var store: StoreContext
 //    @Environment(\.locale) var locale
     var body: some View {
+        Picker("外观", selection: $colorScheme) {
+            Text("\(Image(systemName: "moonphase.last.quarter.inverse")) 跟随系统").tag(0)
+            Text("\(Image(systemName: "moon.fill")) 暗黑模式").tag(1)
+            Text("\(Image(systemName: "sun.max.fill")) 亮模式").tag(2)
+        }
+        // 将 Picker 控件的最大宽度设置为 230 点
+        .frame(maxWidth: 230)
         if store.hasNotPurchased == true, store.isLoading == false  {
-            var _ = print("!~~~")
             PurchasePopupButton()
                 .sheet(isPresented: $store.isShowingPurchasePopup) {
                     PurchaseContent()
@@ -34,8 +41,8 @@ struct PurchaseContent: View {
     @EnvironmentObject var store: StoreContext
     let locale: Locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")
     var body: some View {
-//        StoreKitHelperView()
-        StoreKitHelperSelectionView()
+        StoreKitHelperView()
+//        StoreKitHelperSelectionView()
             .environment(\.locale, .init(identifier: locale.identifier))
             .environment(\.pricingContent, { AnyView(PricingContent()) })
             .environment(\.popupDismissHandle, {
