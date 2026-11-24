@@ -61,6 +61,7 @@ StoreKit Helper
 - 💡 **简洁 API**: 干净直观的应用内购买管理接口
 - 🔄 **自动更新**: 实时交易监控和状态更新
 - 🎟️ **优惠代码兑换**: 内置支持 Apple 系统优惠代码兑换面板
+- 👥 **多名额订阅**: 按席位档计算总价、购买团购席位，并跟踪购买者与受邀成员的有效席位
 - ✅ **类型安全**: 基于协议的产品定义，提供编译时安全性
 - 🧪 **可测试**: 完全可测试的架构，测试用例覆盖 [ExampleTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Example/ExampleTests/ExampleTests.swift)/[StoreKitHelperTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Tests/StoreKitHelperTests/StoreKitHelperTests.swift)
 
@@ -130,6 +131,29 @@ await store.purchase(product, options: [
     .appAccountToken(appAccountToken)
 ])
 ```
+
+## 多名额订阅
+
+多名额订阅和单人购买共用同一个产品 ID。`seats` 是购买完成后的席位总数，不是这次要增加的席位数。一个团最多 100 人，包含购买者自己。比现有席位更少会失败；减少席位要到订阅设置里操作，下次续期才生效。
+
+```swift
+let tiers = [
+    MultiSeatPriceTier(minimumSeats: 1, maximumSeats: 5, pricePerSeat: Decimal(string: "9.99")!),
+    MultiSeatPriceTier(minimumSeats: 6, maximumSeats: 10, pricePerSeat: Decimal(string: "7.99")!),
+]
+let total = product.formattedMultiSeatTotal(seatCount: 8, tiers: tiers) // 5 × 9.99 + 3 × 7.99
+
+await store.purchase(product, seats: 8, options: [
+    .appAccountToken(appAccountToken)
+])
+
+let seats = store.activeSeatCount(for: product.id)
+store.presentMultiSeatManagement()
+```
+
+传 `suppressInvitationSheet: true` 可以在团购完成后不弹出系统邀请面板。受邀成员和机构分配到席位的人，靠自己的交易解锁。`multiSeatGrants` 记录有效席位、已退款席位、邀请方式和原始交易 ID。开发者自行托管邀请的成员没有 App Store 交易，不会出现在这个表里。
+
+`purchase(_:seats:)` 调用 StoreKit 的 `Product.PurchaseOption.seats(_:)`。这个符号随 Xcode 27.3 SDK 提供，并回部署到系统的购买流程。用更早的 SDK 构建时，调用会记为 `StoreKitError.multiSeatPurchaseUnavailable`，不会退回去买一个席位。席位计价和权益统计不依赖这个符号。
 
 兼容旧写法：
 
@@ -275,6 +299,7 @@ enum PurchaseStatus {
 
 - `products: [Product]` - 从 App Store 获取的可用产品列表
 - `purchasedProductIDs: Set<String>` - 已购买产品标识符的集合
+- `multiSeatGrants: [String: MultiSeatGrant]` - 多名额订阅的席位状态，键是产品 ID
 - `purchaseStatus: PurchaseStatus` - 当前购买状态：`.loading`、`.purchased`、`.notPurchased`
 - `hasResolvedPurchaseStatus: Bool` - 首次购买状态同步是否已完成
 - `hasNotPurchased: Bool` - 在购买状态完成解析后，用户是否未购买任何产品
@@ -286,6 +311,9 @@ enum PurchaseStatus {
 ### StoreContext 方法
 
 - `purchase(_ product: Product, options: Set<Product.PurchaseOption> = [])` - 购买指定产品，并可选透传 StoreKit 购买参数
+- `purchase(_ product: Product, seats: Int, suppressInvitationSheet: Bool = false, options:)` - 购买或扩大多名额订阅。`seats` 是购买完成后的席位总数
+- `activeSeatCount(for:) -> Int?` - 扣掉已退款席位后，这个产品当前的有效席位数
+- `presentMultiSeatManagement() -> Bool` - 打开系统订阅管理页
 - `restorePurchases()` - 恢复之前的购买
 - `presentOfferCodeRedemption()` - 在支持的平台上展示 Apple 系统优惠代码兑换面板
 - `refreshPurchasedProducts()` - 重新同步当前有效权益和购买状态

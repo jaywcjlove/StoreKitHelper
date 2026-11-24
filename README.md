@@ -59,6 +59,7 @@ Please refer to the detailed `StoreKitHelper` [documentation](https://github.com
 - 💡 **Simple API**: Clean and intuitive interface for managing in-app purchases
 - 🔄 **Automatic Updates**: Real-time transaction monitoring and status updates
 - 🎟️ **Offer Code Redemption**: Built-in support for Apple's system offer code redemption sheet
+- 👥 **Multi-seat Subscriptions**: Quote seat totals, buy a group, and track active seats for purchasers and assigned members
 - ✅ **Type Safe**: Protocol-based product definitions with compile-time safety
 - 🧪 **Testable**: Fully testable architecture with comprehensive test case coverage [ExampleTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Example/ExampleTests/ExampleTests.swift)/[StoreKitHelperTests.swift](https://github.com/jaywcjlove/StoreKitHelper/blob/main/Tests/StoreKitHelperTests/StoreKitHelperTests.swift)
 
@@ -128,6 +129,29 @@ await store.purchase(product, options: [
     .appAccountToken(appAccountToken)
 ])
 ```
+
+## Multi-seat subscriptions
+
+A multi-seat subscription uses the same product ID as an individual subscription. `seats` is the total number of seats after the purchase, not the number of seats to add. A group can hold 100 people, including the purchaser. Buying fewer seats than the group already has fails; the purchaser reduces the group in subscription settings, and that change applies at the next renewal.
+
+```swift
+let tiers = [
+    MultiSeatPriceTier(minimumSeats: 1, maximumSeats: 5, pricePerSeat: Decimal(string: "9.99")!),
+    MultiSeatPriceTier(minimumSeats: 6, maximumSeats: 10, pricePerSeat: Decimal(string: "7.99")!),
+]
+let total = product.formattedMultiSeatTotal(seatCount: 8, tiers: tiers) // 5 × 9.99 + 3 × 7.99
+
+await store.purchase(product, seats: 8, options: [
+    .appAccountToken(appAccountToken)
+])
+
+let seats = store.activeSeatCount(for: product.id)
+store.presentMultiSeatManagement()
+```
+
+Pass `suppressInvitationSheet: true` to skip the system invitation sheet after a group purchase. Assigned members and people who receive a seat from an organization unlock through their own transaction. `multiSeatGrants` records the active seat count, revoked seats, invitation model, and original transaction ID. Members invited through a developer-hosted flow have no App Store transaction, so they are not in that map.
+
+`purchase(_:seats:)` calls StoreKit's `Product.PurchaseOption.seats(_:)`. That symbol ships in the Xcode 27.3 SDK and back-deploys to the system's purchase flow. A build made with an older SDK reports `StoreKitError.multiSeatPurchaseUnavailable` instead of buying a single seat. Seat quotes and entitlement tracking do not need that symbol.
 
 Compatible legacy usage:
 
@@ -275,6 +299,7 @@ enum PurchaseStatus {
 
 - `products: [Product]` - Available products from the App Store
 - `purchasedProductIDs: Set<String>` - Set of purchased product identifiers
+- `multiSeatGrants: [String: MultiSeatGrant]` - Active multi-seat subscription state, keyed by product ID
 - `purchaseStatus: PurchaseStatus` - Current purchase state: `.loading`, `.purchased`, or `.notPurchased`
 - `hasResolvedPurchaseStatus: Bool` - Whether the initial purchase state sync has completed
 - `hasNotPurchased: Bool` - Whether the user hasn't purchased any products after purchase state resolution
@@ -286,6 +311,9 @@ enum PurchaseStatus {
 ### StoreContext Methods
 
 - `purchase(_ product: Product, options: Set<Product.PurchaseOption> = [])` - Purchase a specific product, optionally forwarding StoreKit purchase options
+- `purchase(_ product: Product, seats: Int, suppressInvitationSheet: Bool = false, options:)` - Buy or enlarge a multi-seat subscription. `seats` is the total after the purchase
+- `activeSeatCount(for:) -> Int?` - Active seats for a multi-seat product, after refunded seats are removed
+- `presentMultiSeatManagement() -> Bool` - Open the system subscription settings page
 - `restorePurchases()` - Restore previous purchases
 - `presentOfferCodeRedemption()` - Present Apple's system offer code redemption sheet on supported platforms
 - `refreshPurchasedProducts()` - Refresh current entitlements and purchase state

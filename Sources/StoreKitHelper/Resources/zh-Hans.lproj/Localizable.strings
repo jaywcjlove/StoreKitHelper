@@ -31,3 +31,6 @@
 "user_cancelled" = "用户取消购买";
 "purchase_pending" = "购买等待审批中";
 "unknown_error" = "未知错误: %@";
+"invalid_seat_count" = "席位数量需要在 1 到 %d 之间。";
+"seat_reduction_not_allowed" = "减少席位只能在订阅设置里操作，并在下次续期时生效。";
+"multi_seat_purchase_unavailable" = "当前构建无法发起多名额购买。";

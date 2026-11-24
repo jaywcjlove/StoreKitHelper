@@ -31,3 +31,6 @@
 "user_cancelled" = "Benutzer hat den Kauf abgebrochen";
 "purchase_pending" = "Kauf wartet auf Genehmigung";
 "unknown_error" = "Unbekannter Fehler: %@";
+"invalid_seat_count" = "Die Anzahl der Plätze muss zwischen 1 und %d liegen.";
+"seat_reduction_not_allowed" = "Weniger Plätze lassen sich nur in den Abo-Einstellungen wählen. Die Änderung gilt ab der nächsten Verlängerung.";
+"multi_seat_purchase_unavailable" = "Dieser Build kann keinen Mehrplatz-Kauf starten.";

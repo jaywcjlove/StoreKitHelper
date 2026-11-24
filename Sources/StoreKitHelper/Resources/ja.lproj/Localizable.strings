@@ -31,3 +31,6 @@
 "user_cancelled" = "ユーザーが購入をキャンセルしました";
 "purchase_pending" = "購入は承認待ちです";
 "unknown_error" = "不明なエラー: %@";
+"invalid_seat_count" = "シート数は 1 から %d の間で指定してください。";
+"seat_reduction_not_allowed" = "シート数を減らす操作はサブスクリプション設定でのみ行えます。変更は次回更新時に反映されます。";
+"multi_seat_purchase_unavailable" = "このビルドでは複数シートの購入を開始できません。";

@@ -31,3 +31,6 @@
 "user_cancelled" = "使用者取消購買";
 "purchase_pending" = "購買等待審核中";
 "unknown_error" = "未知錯誤: %@";
+"invalid_seat_count" = "席位數量需要在 1 到 %d 之間。";
+"seat_reduction_not_allowed" = "減少席位只能在訂閱設定裡操作，並在下次續期時生效。";
+"multi_seat_purchase_unavailable" = "目前的建置無法發起多名額購買。";

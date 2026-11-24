@@ -49,10 +49,19 @@ enum EntitlementRefreshMode: Equatable {
     case restore
 }
 
+struct EntitlementProbe {
+    var lookup: EntitlementLookup
+    var seatFact: SeatTransactionFact?
+    var sawVerifiedTransaction = false
+}
+
 struct EntitlementSnapshot: Equatable {
     var scannedIDs: Set<String> = []
     var lookups: [String: EntitlementLookup] = [:]
     var sawUnverified = false
+    var seatFacts: [SeatTransactionFact] = []
+    /// 这次扫描读到过交易的产品。空缓存不能据此清掉上一份席位记录。
+    var productsSeenInEntitlements: Set<String> = []
 }
 
 struct EntitlementMergeResult: Equatable {
@@ -127,6 +136,10 @@ public final class StoreContext: ObservableObject {
     @Published public private(set) var products: [Product] = []
     /// 购买的产品标识符集合
     @Published public private(set) var purchasedProductIDs: Set<String> = []
+    /// 多名额订阅的席位。键是产品 ID。
+    /// 团购购买者、Apple 托管邀请的成员，以及机构分配到席位的人都会出现在这里。
+    /// 开发者托管邀请的成员没有 App Store 交易，不在这里。
+    @Published public private(set) var multiSeatGrants: [ProductID: MultiSeatGrant] = [:]
     /// 当前购买状态
     @Published public private(set) var purchaseStatus: PurchaseStatus = .loading
     /// 是否正在加载
@@ -171,6 +184,8 @@ public final class StoreContext: ObservableObject {
     private var productsSeenInCache: Set<String> = []
     /// 优惠码兑换页还开着时先记下，等页面关闭再解锁，避免付费墙在系统弹窗底下被收起。
     private var pendingOfferProductIDs: Set<String> = []
+    /// 本进程刚验过、权益扫描可能还没读到的多名额交易。
+    private var sessionSeatFacts: [SeatTransactionFact] = []
     private var shouldRefreshPurchasedProductsAfterOfferCodeRedemption = false
     
     // MARK: - Initialization
@@ -222,8 +237,10 @@ public final class StoreContext: ObservableObject {
                 }
                 if await isTransactionEntitled(transaction) {
                     grantVerifiedPurchase(transaction.productID)
+                    await rememberSeatFact(from: transaction)
                     storeError = nil
                 } else {
+                    forgetSeatFact(transactionID: transaction.id)
                     revokeVerifiedPurchase(transaction.productID)
                 }
                 await transaction.finish()
@@ -238,6 +255,68 @@ public final class StoreContext: ObservableObject {
         } catch {
             storeError = .purchaseFailed(error)
         }
+    }
+
+    /// 购买多名额订阅，或给已经买下的团购加席。
+    ///
+    /// `seats` 是购买完成后的席位总数，不是这次要增加的数量。例如已有 8 席再加 4 席，传 12。
+    /// 单次最多 100 席。比现有席位更少会失败，减少席位要到订阅设置里操作。
+    /// 团购可以在 iPhone、iPad 和 Mac 上购买。邀请成员和机构分配到的席位，在每台设备上都会进当前权益。
+    public func purchase(
+        _ product: Product,
+        seats targetSeatQuantity: Int,
+        suppressInvitationSheet: Bool = false,
+        options: Set<Product.PurchaseOption> = []
+    ) async {
+        let purchaserActiveSeats = purchaserSeatCount(for: product.id)
+        switch validateMultiSeatPurchase(
+            targetSeatQuantity: targetSeatQuantity,
+            purchaserActiveSeats: purchaserActiveSeats
+        ) {
+        case .invalidSeatCount:
+            storeError = .invalidSeatCount
+            return
+        case .seatReductionNotAllowed:
+            storeError = .seatReductionNotAllowed
+            return
+        case .valid:
+            break
+        }
+        #if os(iOS) || os(macOS)
+        guard let seatOptions = resolvedMultiSeatPurchaseOptions(
+            seats: targetSeatQuantity,
+            suppressInvitationSheet: suppressInvitationSheet
+        ) else {
+            storeError = .multiSeatPurchaseUnavailable
+            return
+        }
+        var purchaseOptions = options
+        purchaseOptions.formUnion(seatOptions)
+        await purchase(product, options: purchaseOptions)
+        #else
+        storeError = .multiSeatPurchaseUnavailable
+        #endif
+    }
+
+    /// 打开系统订阅管理页。减少席位，以及当前系统还不能展示邀请面板时的邀请，都从这里走。
+    @discardableResult
+    public func presentMultiSeatManagement() -> Bool {
+        let url = MultiSeatPurchase.subscriptionSettingsURL
+        #if os(macOS)
+        return NSWorkspace.shared.open(url)
+        #elseif os(watchOS)
+        return false
+        #elseif canImport(UIKit)
+        UIApplication.shared.open(url)
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    /// 这个产品当前还有效的席位数。没有多名额交易时返回 nil。
+    public func activeSeatCount(for productID: ProductID) -> Int? {
+        multiSeatGrants[productID]?.activeSeatCount
     }
     
     // MARK: 恢复购买
@@ -375,7 +454,9 @@ public final class StoreContext: ObservableObject {
             if entitled {
                 verifiedThisSession.insert(transaction.productID)
                 pendingOfferProductIDs.insert(transaction.productID)
+                await rememberSeatFact(from: transaction)
             } else {
+                forgetSeatFact(transactionID: transaction.id)
                 revokeVerifiedPurchase(transaction.productID)
             }
             shouldRefreshPurchasedProductsAfterOfferCodeRedemption = true
@@ -385,8 +466,10 @@ public final class StoreContext: ObservableObject {
 
         if entitled {
             grantVerifiedPurchase(transaction.productID)
+            await rememberSeatFact(from: transaction)
             storeError = nil
         } else {
+            forgetSeatFact(transactionID: transaction.id)
             revokeVerifiedPurchase(transaction.productID)
         }
         await transaction.finish()
@@ -483,13 +566,22 @@ public final class StoreContext: ObservableObject {
             .union(sessionGrantsToKeep)
             .subtracting(snapshot.scannedIDs)
         for productID in candidates {
-            snapshot.lookups[productID] = await lookupEntitlement(productID)
+            let probe = await lookupEntitlement(productID)
+            snapshot.lookups[productID] = probe.lookup
+            if probe.sawVerifiedTransaction {
+                snapshot.productsSeenInEntitlements.insert(productID)
+            }
+            if let fact = probe.seatFact {
+                snapshot.seatFacts.append(fact)
+            }
             guard generation == entitlementRefreshGeneration else { return }
         }
         var grantsToKeep = sessionGrantsToKeep
         // 兑换页还在时，先不要把刚兑换的商品写进已购买，等页面关闭再解锁。
         if isShowingOfferCodeRedemption {
             snapshot.scannedIDs.subtract(pendingOfferProductIDs)
+            snapshot.productsSeenInEntitlements.subtract(pendingOfferProductIDs)
+            snapshot.seatFacts.removeAll { pendingOfferProductIDs.contains($0.productID) }
             grantsToKeep.subtract(pendingOfferProductIDs)
             for productID in pendingOfferProductIDs {
                 snapshot.lookups[productID] = .missing
@@ -506,6 +598,7 @@ public final class StoreContext: ObservableObject {
 
         purchasedProductIDs = merged.productIDs
         purchaseStatus = merged.productIDs.isEmpty ? .notPurchased : .purchased
+        applySeatRefresh(snapshot: snapshot, purchasedProductIDs: merged.productIDs)
         lastEntitlementRefreshAt = Date()
         if merged.reportUnverified {
             storeError = .verificationFailed
@@ -521,8 +614,12 @@ public final class StoreContext: ObservableObject {
             switch verificationResult {
             case .verified(let transaction):
                 productsSeenInCache.insert(transaction.productID)
+                snapshot.productsSeenInEntitlements.insert(transaction.productID)
                 if await isTransactionEntitled(transaction) {
                     snapshot.scannedIDs.insert(transaction.productID)
+                    if let fact = await seatFact(from: transaction) {
+                        snapshot.seatFacts.append(fact)
+                    }
                 }
             case .unverified:
                 snapshot.sawUnverified = true
@@ -532,20 +629,26 @@ public final class StoreContext: ObservableObject {
     }
 
     /// 按商品补查。`currentEntitlements` 为空时，非消耗型购买仍可能在 `Transaction.latest` 里。
-    private func lookupEntitlement(_ productID: String) async -> EntitlementLookup {
+    private func lookupEntitlement(_ productID: String) async -> EntitlementProbe {
         guard let verificationResult = await StoreKit.Transaction.latest(for: productID) else {
-            return entitlementLookupForMissingTransaction(
-                wasSeenInCache: productsSeenInCache.contains(productID)
+            return EntitlementProbe(
+                lookup: entitlementLookupForMissingTransaction(
+                    wasSeenInCache: productsSeenInCache.contains(productID)
+                )
             )
         }
         guard let transaction = checkVerified(verificationResult) else {
-            return .unverified
+            return EntitlementProbe(lookup: .unverified)
         }
         productsSeenInCache.insert(productID)
         if await isTransactionEntitled(transaction) {
-            return .entitled
+            return EntitlementProbe(
+                lookup: .entitled,
+                seatFact: await seatFact(from: transaction),
+                sawVerifiedTransaction: true
+            )
         }
-        return .notEntitled
+        return EntitlementProbe(lookup: .notEntitled, sawVerifiedTransaction: true)
     }
 
     /// `currentEntitlements` 会包含宽限期内的订阅，那些交易的 `expirationDate` 可能已经早于本机时间。
@@ -556,6 +659,12 @@ public final class StoreContext: ObservableObject {
         }
         guard transaction.revocationDate == nil, transaction.isUpgraded == false else {
             return false
+        }
+        // 成员被移出团购，或机构收回席位时，撤销类型是 assignmentRevocation。
+        if #available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, visionOS 26.4, *) {
+            if transaction.revocationType == .assignmentRevocation {
+                return false
+            }
         }
         if let status = await transaction.subscriptionStatus {
             let state = status.state
@@ -570,6 +679,58 @@ public final class StoreContext: ObservableObject {
             return expirationDate > Date()
         }
         return true
+    }
+
+    private func purchaserSeatCount(for productID: String) -> Int? {
+        guard let grant = multiSeatGrants[productID] else { return nil }
+        switch grant.ownership {
+        case .purchased, .unknown:
+            return grant.activeSeatCount
+        case .assigned, .familyShared:
+            return nil
+        }
+    }
+
+    private func applySeatRefresh(snapshot: EntitlementSnapshot, purchasedProductIDs: Set<String>) {
+        let suppressed = isShowingOfferCodeRedemption ? pendingOfferProductIDs : []
+        let heldBack = sessionSeatFacts.filter { suppressed.contains($0.productID) }
+        let output = mergeMultiSeatGrants(MultiSeatRefreshInput(
+            scannedFacts: snapshot.seatFacts,
+            sessionFacts: sessionSeatFacts.filter { suppressed.contains($0.productID) == false },
+            purchasedProductIDs: purchasedProductIDs,
+            productsSeenInEntitlements: snapshot.productsSeenInEntitlements,
+            previousGrants: multiSeatGrants
+        ))
+        multiSeatGrants = output.grants
+        sessionSeatFacts = output.sessionFacts + heldBack
+    }
+
+    private func rememberSeatFact(from transaction: StoreKit.Transaction) async {
+        guard let fact = await seatFact(from: transaction) else { return }
+        sessionSeatFacts.removeAll { $0.transactionID == fact.transactionID }
+        sessionSeatFacts.append(fact)
+    }
+
+    private func forgetSeatFact(transactionID: UInt64) {
+        sessionSeatFacts.removeAll { $0.transactionID == transactionID }
+    }
+
+    private func seatFact(from transaction: StoreKit.Transaction) async -> SeatTransactionFact? {
+        guard transaction.productType != .consumable else { return nil }
+        var renewalSeatCount: Int?
+        if let status = await transaction.subscriptionStatus,
+           case .verified(let renewalInfo) = status.renewalInfo {
+            renewalSeatCount = parseRenewalSeatCount(from: renewalInfo.jsonRepresentation)
+        }
+        return makeSeatTransactionFact(
+            transactionID: transaction.id,
+            productID: transaction.productID,
+            purchasedQuantity: transaction.purchasedQuantity,
+            originalID: transaction.originalID,
+            ownership: multiSeatOwnership(for: transaction.ownershipType),
+            jsonRepresentation: transaction.jsonRepresentation,
+            renewalSeatCount: renewalSeatCount
+        )
     }
 
     private func grantVerifiedPurchase(_ productID: String) {

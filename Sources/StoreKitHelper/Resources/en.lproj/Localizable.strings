@@ -31,3 +31,6 @@
 "user_cancelled" = "User cancelled purchase";
 "purchase_pending" = "Purchase is pending approval";
 "unknown_error" = "Unknown error: %@";
+"invalid_seat_count" = "Enter a seat count from 1 to %d.";
+"seat_reduction_not_allowed" = "Reduce seats in subscription settings. The change takes effect at the next renewal.";
+"multi_seat_purchase_unavailable" = "This build can't start a multi-seat purchase.";

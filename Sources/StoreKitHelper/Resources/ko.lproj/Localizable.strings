@@ -31,3 +31,6 @@
 "user_cancelled" = "사용자가 구매를 취소했습니다";
 "purchase_pending" = "구매가 승인 대기 중입니다";
 "unknown_error" = "알 수 없는 오류: %@";
+"invalid_seat_count" = "좌석 수는 1에서 %d 사이여야 합니다.";
+"seat_reduction_not_allowed" = "좌석 수를 줄이는 것은 구독 설정에서만 할 수 있으며, 다음 갱신부터 적용됩니다.";
+"multi_seat_purchase_unavailable" = "이 빌드에서는 다인 구독을 시작할 수 없습니다.";

@@ -31,3 +31,6 @@
 "user_cancelled" = "L'utilisateur a annulé l'achat";
 "purchase_pending" = "L'achat est en attente d'approbation";
 "unknown_error" = "Erreur inconnue : %@";
+"invalid_seat_count" = "Indiquez un nombre de places entre 1 et %d.";
+"seat_reduction_not_allowed" = "Le nombre de places ne peut être réduit que dans les réglages d'abonnement. Le changement prend effet au prochain renouvellement.";
+"multi_seat_purchase_unavailable" = "Cette version ne peut pas démarrer un achat multiplace.";
